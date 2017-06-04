@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config-description:config-descriptions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:config-description="http://eclipse.org/smarthome/schemas/config-description/v1.0.0"
+	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/config-description/v1.0.0 http://eclipse.org/smarthome/schemas/config-description-1.0.0.xsd">
+
+	<config-description uri="thing-type:weatherstation:receiver">
+		<parameter name="receiver" type="text">
+			<label>Receiver to use</label>
+			<description>Receiver used for data reception.</description>
+			<required>true</required>
+			<options>
+				<option value="CC1101">CC1101</option>
+				<option value="RXB">RXB</option>
+			</options>
+		</parameter>
+		<parameter name="pin" type="integer" min="1" max="40">
+			<label>GPIO pin as BCM number</label>
+			<description>GPIO pin receiver connected to.</description>
+			<required>true</required>
+		</parameter>
+		<parameter name="refresh" type="integer" min="1" step="1">
+			<label>Refresh interval</label>
+			<description>Seconds between data reread from receiver.</description>
+			<required>false</required>
+			<default>100</default>
+		</parameter>
+		<parameter name="timeout" type="integer" min="-1" step="500">
+			<label>Pulse timeout</label>
+			<description>Milliseconds wait for edge on GPIO pin.</description>
+			<required>false</required>
+			<default>-1</default>
+		</parameter>
+		<parameter name="device" type="text">
+			<label>SPI device</label>
+			<description>SPI device name CC1101 module connected to.</description>
+			<required>false</required>
+			<default>/dev/spidev0.0</default>
+		</parameter>
+		<parameter name="interrupt" type="integer" min="0" max="2" step="2">
+			<label>CC1101 interrupt pin.</label>
+			<description>Use "0" for GDO0 or "2" for GDO2.</description>
+			<required>false</required>
+			<default>0</default>
+	</parameter>
+	</config-description>
+</config-description:config-descriptions>

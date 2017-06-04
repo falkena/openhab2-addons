@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="hideki"
+						  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						  xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+						  xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+
+	<!-- Hideki/Cresta UVmeter -->
+	<thing-type id="uvmeter">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="receiver" />
+		</supported-bridge-type-refs>
+		<label>Hideki UV-meter</label>
+		<description>Hideki/Cresta/TFA wireless UV-meter</description>
+
+		<channels>
+			<channel id="sensor" typeId="sensor"/>
+            <channel id="battery" typeId="battery"/>
+            <channel id="message" typeId="message"/>
+            <channel id="rssi" typeId="rssi"/>
+            <channel id="updated" typeId="updated"/>
+			<channel id="temperature" typeId="temperature"/>
+			<channel id="uv" typeId="uv"/>
+			<channel id="med" typeId="med"/>
+		</channels>
+	</thing-type>
+
+	<channel-type id="uv">
+		<item-type>Number</item-type>
+		<label>UV level</label>
+		<description>Received uv level</description>
+		<state readOnly="true"></state>
+	</channel-type>
+
+	<channel-type id="med">
+		<item-type>Number</item-type>
+		<label>MED</label>
+		<description>Received MED</description>
+		<state readOnly="true"></state>
+	</channel-type>
+</thing:thing-descriptions>

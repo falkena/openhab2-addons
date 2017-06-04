@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="hideki"
+						  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						  xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+						  xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+
+	<!-- Hideki/Cresta thermometer -->
+	<thing-type id="thermometer">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="receiver" />
+		</supported-bridge-type-refs>
+		<label>Hideki thermometer</label>
+		<description>Hideki/Cresta/TFA wireless thermometer</description>
+
+		<channels>
+			<channel id="sensor" typeId="sensor"/>
+            <channel id="battery" typeId="battery"/>
+            <channel id="message" typeId="message"/>
+            <channel id="rssi" typeId="rssi"/>
+            <channel id="updated" typeId="updated"/>
+			<channel id="temperature" typeId="temperature"/>
+			<channel id="humidity" typeId="humidity"/>
+			<channel id="channel" typeId="channel"/>
+		</channels>
+	</thing-type>
+
+    <channel-type id="channel">
+        <item-type>Number</item-type>
+        <label>Sensor channel</label>
+        <description>Received sensor channel</description>
+        <state readOnly="true"></state>
+    </channel-type>
+
+	<channel-type id="humidity">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Humidity</label>
+		<description>Received humidity</description>
+		<state pattern="%d %unit%" readOnly="true"></state>
+	</channel-type>
+
+</thing:thing-descriptions>

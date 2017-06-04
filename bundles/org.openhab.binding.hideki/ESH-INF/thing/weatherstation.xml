@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="hideki" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+
+	<!-- Hideki/Cresta/TFA weather station -->
+	<thing-type id="weatherstation">
+		<label>Hideki weather station</label>
+		<description>Hideki weather station</description>
+		<channel-groups>
+			<channel-group typeId="anemometer" id="anemometer" />
+			<channel-group typeId="thermometer" id="thermometer" />
+			<channel-group typeId="pluviometer" id="pluviometer" />
+			<channel-group typeId="uvmeter" id="uvmeter" />
+		</channel-groups>
+		<config-description-ref uri="thing-type:weatherstation:receiver" />
+	</thing-type>
+
+	<channel-group-type id="anemometer">
+		<label>Anemometer</label>
+		<description>Hideki/Cresta/TFA wireless anemometer</description>
+		<channels>
+			<channel id="sensor" typeId="sensor"/>
+			<channel id="battery" typeId="system.low-battery"/>
+			<channel id="message" typeId="message"/>
+			<channel id="rssi" typeId="system.signal-strength"/>
+			<channel id="updated" typeId="updated"/>
+			<channel id="temperature" typeId="system.outdoor-temperature"/>
+			<channel id="chill" typeId="system.outdoor-temperature"/>
+			<channel id="gust" typeId="system.wind-speed"/>
+			<channel id="speed" typeId="system.wind-speed"/>
+			<channel id="direction" typeId="system.wind-direction"/>
+		</channels>
+	</channel-group-type>
+
+	<channel-group-type id="thermometer">
+		<label>Thermometer</label>
+		<description>Hideki/Cresta/TFA wireless thermometer</description>
+		<channels>
+			<channel id="sensor" typeId="sensor"/>
+			<channel id="battery" typeId="system.low-battery"/>
+			<channel id="message" typeId="message"/>
+			<channel id="rssi" typeId="system.signal-strength"/>
+			<channel id="updated" typeId="updated"/>
+			<channel id="temperature" typeId="system.outdoor-temperature"/>
+			<channel id="humidity" typeId="system.atmospheric-humidity"/>
+			<channel id="channel" typeId="channel"/>
+		</channels>
+	</channel-group-type>
+
+	<channel-group-type id="pluviometer">
+		<label>Pluviometer</label>
+		<description>Hideki/Cresta/TFA wireless pluviometer</description>
+		<channels>
+			<channel id="sensor" typeId="sensor"/>
+			<channel id="battery" typeId="system.low-battery"/>
+			<channel id="message" typeId="message"/>
+			<channel id="rssi" typeId="system.signal-strength"/>
+			<channel id="updated" typeId="updated"/>
+			<channel id="rain" typeId="rain"/>
+		</channels>
+	</channel-group-type>
+
+	<channel-group-type id="uvmeter">
+		<label>UV-meter</label>
+		<description>Hideki/Cresta/TFA wireless UV-meter</description>
+		<channels>
+			<channel id="sensor" typeId="sensor"/>
+			<channel id="battery" typeId="system.low-battery"/>
+			<channel id="message" typeId="message"/>
+			<channel id="rssi" typeId="system.signal-strength"/>
+			<channel id="updated" typeId="updated"/>
+			<channel id="temperature" typeId="system.outdoor-temperature"/>
+			<channel id="uv" typeId="uv"/>
+			<channel id="med" typeId="med"/>
+		</channels>
+	</channel-group-type>
+
+	<!-- Common channel types -->
+	<channel-type id="sensor">
+		<item-type>Number</item-type>
+		<label>Sensor id</label>
+		<description>Received sensor id</description>
+		<state readOnly="true"></state>
+	</channel-type>
+
+	<channel-type id="type">
+		<item-type>Number</item-type>
+		<label>Sensor type</label>
+		<description>Received sensor type</description>
+		<state readOnly="true"></state>
+	</channel-type>
+
+	<channel-type id="message">
+		<item-type>Number</item-type>
+		<label>Sensor message</label>
+		<description>Received sensor message number</description>
+		<state readOnly="true"></state>
+	</channel-type>
+
+	<channel-type id="updated">
+		<item-type>DateTime</item-type>
+		<label>Last update</label>
+		<description>Timestamp of the last update</description>
+		<state readOnly="true"></state>
+	</channel-type>
+
+	<!-- Anemometer channel types -->
+
+	<!-- Thermometer channel types -->
+	<channel-type id="channel">
+		<item-type>Number</item-type>
+		<label>Sensor channel</label>
+		<description>Received sensor channel</description>
+		<state readOnly="true"></state>
+	</channel-type>
+
+	<!-- Pluviometer channel types -->
+	<channel-type id="rain">
+		<item-type>Number</item-type>
+		<label>Rain level</label>
+		<description>Received rain level</description>
+		<state readOnly="true"></state>
+	</channel-type>
+
+	<!-- UV-Meter channel types -->
+	<channel-type id="uv">
+		<item-type>Number</item-type>
+		<label>UV level</label>
+		<description>Received UV level</description>
+		<state readOnly="true"></state>
+	</channel-type>
+
+	<channel-type id="med">
+		<item-type>Number</item-type>
+		<label>MED</label>
+		<description>Received MED</description>
+		<state readOnly="true"></state>
+	</channel-type>
+
+</thing:thing-descriptions>

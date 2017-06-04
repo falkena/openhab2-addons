@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="hideki"
+						  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						  xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+						  xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+
+	<!-- Hideki/Cresta anemometer -->
+	<thing-type id="anemometer">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="receiver" />
+		</supported-bridge-type-refs>
+		<label>Hideki anemometer</label>
+		<description>Hideki/Cresta/TFA wireless anemometer</description>
+
+		<channels>
+			<channel id="sensor" typeId="sensor"/>
+            <channel id="battery" typeId="battery"/>
+            <channel id="message" typeId="message"/>
+            <channel id="rssi" typeId="rssi"/>
+            <channel id="updated" typeId="updated"/>
+			<channel id="temperature" typeId="temperature"/>
+			<channel id="chill" typeId="chill"/>
+			<channel id="gust" typeId="gust"/>
+			<channel id="speed" typeId="speed"/>
+			<channel id="direction" typeId="direction"/>
+		</channels>
+	</thing-type>
+  
+	<channel-type id="chill">
+		<item-type>Number:Temperature</item-type>
+		<label>Wind chill</label>
+		<description>Received wind chill</description>
+		<state pattern="%.1f %unit%" readOnly="true"></state>
+	</channel-type>
+
+	<channel-type id="gust">
+		<item-type>Number:Speed</item-type>
+		<label>Wind gust</label>
+		<description>Received wind gust</description>
+		<state pattern="%.1f %unit%" readOnly="true"></state>
+	</channel-type>
+
+	<channel-type id="speed">
+		<item-type>Number:Speed</item-type>
+		<label>Wind speed</label>
+		<description>Received wind speed</description>
+		<state pattern="%.1f %unit%" readOnly="true"></state>
+	</channel-type>
+
+	<channel-type id="direction">
+		<item-type>Number:Angle</item-type>
+		<label>Wind direction</label>
+		<description>Received wind direction</description>
+		<state pattern="%.1f %unit%" readOnly="true"></state>
+	</channel-type>
+</thing:thing-descriptions>
