@@ -2,16 +2,12 @@ TARGET=libhideki.so
 
 DEBUG      = -O3 -fwhole-program -std=c++11
 CC         = gcc
-INCLUDE	   = -I/$(JAVA_HOME)/include                           \
-             -I/$(JAVA_HOME)/include/linux                     \
-             -I/usr/lib/jvm/jdk-8-oracle/include               \
-             -I/usr/lib/jvm/jdk-8-oracle/include/linux         \
-             -I/usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/include       \
-             -I/usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/include/linux \
-             -I/usr/lib/jvm/java-8-oracle/include              \
-             -I/usr/lib/jvm/java-8-oracle/include/linux        \
-             -I/usr/lib/jvm/java-8-openjdk-armhf/include       \
-             -I/usr/lib/jvm/java-8-openjdk-armhf/include/linux \
+INCLUDE	   = -I./queue \
+             -I/$(JAVA_HOME)/include -I/$(JAVA_HOME)/include/linux \
+             -I/usr/lib/jvm/zulu-embedded-8-armhf/include          \
+             -I/usr/lib/jvm/zulu-embedded-8-armhf/include/linux    \
+             -I/usr/lib/jvm/zulu-embedded-8-armhf-arm32-vfp-hflt/include       \
+             -I/usr/lib/jvm/zulu-embedded-8-armhf-arm32-vfp-hflt/include/linux \
              -I/usr/local/include -I/usr/local/include/linux
 
 CFLAGS      := $(DEBUG) -pedantic -Wall $(INCLUDE) -Winline -pipe $(CARGS) -Wl,--add-stdcall-alias -fPIC
