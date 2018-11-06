@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<thing:thing-descriptions bindingId="hideki" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<thing:thing-descriptions bindingId="hideki"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
 
@@ -8,12 +9,12 @@
 		<label>Hideki weather station</label>
 		<description>Hideki weather station</description>
 		<channel-groups>
-			<channel-group typeId="anemometer" id="anemometer" />
-			<channel-group typeId="thermometer" id="thermometer" />
-			<channel-group typeId="pluviometer" id="pluviometer" />
-			<channel-group typeId="uvmeter" id="uvmeter" />
+			<channel-group typeId="anemometer" id="anemometer"/>
+			<channel-group typeId="thermometer" id="thermometer"/>
+			<channel-group typeId="pluviometer" id="pluviometer"/>
+			<channel-group typeId="uvmeter" id="uvmeter"/>
 		</channel-groups>
-		<config-description-ref uri="thing-type:weatherstation:receiver" />
+		<config-description-ref uri="thing-type:weatherstation:receiver"/>
 	</thing-type>
 
 	<channel-group-type id="anemometer">

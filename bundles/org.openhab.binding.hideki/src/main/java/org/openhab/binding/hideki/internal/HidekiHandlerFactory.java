@@ -8,7 +8,7 @@
  */
 package org.openhab.binding.hideki.internal;
 
-import static org.openhab.binding.hideki.HidekiBindingConstants.THING_TYPE_WEATHERSTATION;
+import static org.openhab.binding.hideki.internal.HidekiBindingConstants.THING_TYPE_WEATHERSTATION;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -16,14 +16,13 @@ import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
-import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
-import org.eclipse.smarthome.core.thing.binding.ThingHandler;
-import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
-import org.openhab.binding.hideki.handler.HidekiWeatherstationHandler;
+import org.openhab.binding.hideki.internal.handler.HidekiWeatherstationHandler;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingTypeUID;
+import org.openhab.core.thing.binding.BaseThingHandlerFactory;
+import org.openhab.core.thing.binding.ThingHandler;
+import org.openhab.core.thing.binding.ThingHandlerFactory;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 /**
  * The {@link HidekiHandlerFactory} is responsible for creating things and
@@ -32,7 +31,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
  * @author Alexander Falkenstern - Initial contribution
  */
 @NonNullByDefault
-@Component(service = ThingHandlerFactory.class, configurationPid = "binding.hideki", configurationPolicy = ConfigurationPolicy.OPTIONAL)
+@Component(service = ThingHandlerFactory.class, configurationPid = "binding.hideki")
 public class HidekiHandlerFactory extends BaseThingHandlerFactory {
     static {
         NativeLibraryLoader.load("libhideki.so");

@@ -25,6 +25,7 @@
 #include "RXB.h"
 
 #include <jni.h>
+
 #include <array>
 #include <cmath>
 #include <map>
@@ -129,7 +130,7 @@ jintArray JNICALL Java_org_openhab_binding_hideki_internal_HidekiDecoder_getDeco
         result = env->NewIntArray(length + 1);
         jint* buffer = env->GetIntArrayElements(result, nullptr);
         for (jint i = 0; i < length; i++) {
-          buffer[i] = data[i];
+          buffer[i] = static_cast<jint>(data[i]);
         }
         buffer[length] = static_cast<jint>(std::round(rssi));
         env->ReleaseIntArrayElements(result, buffer, 0);

@@ -18,8 +18,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @NonNullByDefault
 public class HidekiReceiverConfiguration {
 
-    private String receiver;
-    private Integer pin;
+    private String receiver = "UNKNOWN";
+    private Integer pin = 0;
 
     private Integer refresh = 1;
     private Integer timeout = -1;
@@ -108,5 +108,4 @@ public class HidekiReceiverConfiguration {
     public void setInterrupt(final Integer interrupt) {
         this.interrupt = interrupt;
     }
-
 }

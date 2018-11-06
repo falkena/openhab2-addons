@@ -6,12 +6,11 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.openhab.binding.hideki.handler;
+package org.openhab.binding.hideki.internal.handler;
 
-import static org.openhab.binding.hideki.HidekiBindingConstants.*;
+import static org.openhab.binding.hideki.internal.HidekiBindingConstants.*;
 
 import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,25 +19,25 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.config.core.Configuration;
-import org.eclipse.smarthome.core.library.types.DateTimeType;
-import org.eclipse.smarthome.core.library.types.DecimalType;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.QuantityType;
-import org.eclipse.smarthome.core.library.unit.ImperialUnits;
-import org.eclipse.smarthome.core.library.unit.SIUnits;
-import org.eclipse.smarthome.core.library.unit.SmartHomeUnits;
-import org.eclipse.smarthome.core.thing.Channel;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
-import org.eclipse.smarthome.core.types.Command;
-import org.eclipse.smarthome.core.types.RefreshType;
 import org.openhab.binding.hideki.internal.HidekiDecoder;
 import org.openhab.binding.hideki.internal.HidekiReceiver;
 import org.openhab.binding.hideki.internal.config.HidekiReceiverConfiguration;
+import org.openhab.core.config.core.Configuration;
+import org.openhab.core.library.types.DateTimeType;
+import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.QuantityType;
+import org.openhab.core.library.unit.ImperialUnits;
+import org.openhab.core.library.unit.SIUnits;
+import org.openhab.core.library.unit.Units;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.binding.BaseThingHandler;
+import org.openhab.core.types.Command;
+import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,20 +61,18 @@ public class HidekiWeatherstationHandler extends BaseThingHandler {
     @Nullable
     private ScheduledFuture<?> readerJob;
     private final Runnable dataReader = new Runnable() {
+        private final Thing thing = getThing();
+
         @Override
         public void run() {
-            final Thing thing = getThing();
             if ((decoder != null) && (ThingStatus.ONLINE == thing.getStatus())) {
-                final int[] buffer = decoder.getDecodedData();
+                final int @Nullable [] buffer = decoder.getDecodedData();
                 if ((buffer != null) && (buffer[0] == 0x9F)) {
+                    @Nullable
                     Integer type = getDecodedType(buffer);
-                    if (data.containsKey(type) && (type != null)) {
+                    if ((type != null) && data.containsKey(type)) {
                         if (buffer.length == getDecodedLength(buffer)) {
-                            if (data.get(type).length == 0) {
-                                data.put(type, new int[buffer.length]);
-                            }
-                            System.arraycopy(buffer, 0, data.get(type), 0, buffer.length);
-
+                            data.put(type, buffer);
                             final String group = SENSOR_GROUPS.get(type);
                             for (final Channel channel : thing.getChannels()) {
                                 final ChannelUID channelUID = channel.getUID();
@@ -92,16 +89,37 @@ public class HidekiWeatherstationHandler extends BaseThingHandler {
                             logger.warn("Got wrong sensor data length {}.", buffer.length);
                         }
                     } else {
-                        logger.warn("Got unknown sensor type {}.", type);
+                        logger.warn("Got unknown sensor type {} from data {}.", type, toHexString(buffer));
                     }
                     if (logger.isTraceEnabled()) {
-                        logger.trace("Fetched new data: {}.", Arrays.toString(buffer));
+                        logger.trace("Fetched new data: {}.", toHexString(buffer));
                     }
                 }
             }
-
         }
     };
+
+    private static final char[] HEX_LUT = "0123456789ABCDEF".toCharArray();
+
+    private static String toHexString(final int[] data) {
+        String result = "[";
+        for (int i = 0; i < data.length - 1; i++) {
+            if (data[i] == (data[i] & 0xFF)) {
+                result += String.format("0x%c%c", HEX_LUT[data[i] >>> 4], HEX_LUT[data[i] & 0x0F]);
+            } else {
+                result += String.format("%d", data[i]);
+            }
+            result += ", ";
+        }
+        if (data.length > 1) {
+            result += String.format("%d, ", data[data.length - 1]);
+        }
+        if (result.length() > 2) {
+            result = result.substring(0, result.length() - 2);
+        }
+        result += "]";
+        return result;
+    }
 
     public HidekiWeatherstationHandler(Thing thing) {
         super(thing);
@@ -122,7 +140,7 @@ public class HidekiWeatherstationHandler extends BaseThingHandler {
         }
 
         final int[] buffer = data.get(type);
-        if ((command instanceof RefreshType) && (buffer.length != 0)) {
+        if ((command instanceof RefreshType) && (buffer != null) && (buffer.length > 1)) {
             final String channelId = channelUID.getIdWithoutGroup();
             if (SENSOR_ID.equals(channelId)) {
                 int id = buffer.length < 2 ? -1 : buffer[1];
@@ -166,7 +184,7 @@ public class HidekiWeatherstationHandler extends BaseThingHandler {
                 segment = segment ^ (segment & 8) >> 1;
                 segment = segment ^ (segment & 4) >> 1;
                 segment = segment ^ (segment & 2) >> 1;
-                updateState(channelUID, new QuantityType<>(22.5 * (-segment & 0xF), SmartHomeUnits.DEGREE_ANGLE));
+                updateState(channelUID, new QuantityType<>(22.5 * (-segment & 0xF), Units.DEGREE_ANGLE));
             } else if (SENSOR_CHANNEL.equals(channelId)) {
                 int channel = buffer.length < 2 ? -1 : buffer[1] >> 5;
                 if ((channel == 5) || (channel == 6)) {
@@ -177,7 +195,7 @@ public class HidekiWeatherstationHandler extends BaseThingHandler {
                 updateState(channelUID, new DecimalType(channel));
             } else if (HUMIDITY.equals(channelId)) {
                 double humidity = (buffer[6] >> 4) * 10.0 + (buffer[6] & 0x0F);
-                updateState(channelUID, new QuantityType<>(humidity, SmartHomeUnits.PERCENT));
+                updateState(channelUID, new QuantityType<>(humidity, Units.PERCENT));
             } else if (RAIN_LEVEL.equals(channelId)) {
                 double level = 0.7 * ((buffer[5] << 8) + buffer[4]);
                 updateState(channelUID, new DecimalType(level));
@@ -208,8 +226,6 @@ public class HidekiWeatherstationHandler extends BaseThingHandler {
 
         data.clear();
         SENSOR_GROUPS.forEach((key, value) -> data.put(key, new int[0]));
-
-        logger.debug("Initialize Hideki receiver handler.");
 
         scheduler.execute(new Runnable() {
             @Override
@@ -246,26 +262,20 @@ public class HidekiWeatherstationHandler extends BaseThingHandler {
      */
     @Override
     public void dispose() {
-        logger.debug("Dispose Hideki receiver handler.");
         super.dispose();
 
         if (readerJob != null) {
             readerJob.cancel(false);
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException exception) {
-                logger.debug("Dispose Hideki receiver handler throw an error: {}.", exception.getMessage());
-            }
-            readerJob = null;
+            logger.info("Destroy hideki reader job.");
         }
+        readerJob = null;
+
         if (decoder != null) {
             decoder.stop();
-            decoder = null;
         }
+        decoder = null;
 
         data.clear();
-
-        logger.info("Destroy hideki reader job.");
     }
 
     /**
@@ -297,5 +307,4 @@ public class HidekiWeatherstationHandler extends BaseThingHandler {
         final int length = (data == null) || (data.length < 3) ? -1 : (data[2] >> 1) & 0x1F;
         return length < 0 ? length : length + 2; // First byte is 0x9F preamble and last RSSI value
     }
-
 }

@@ -11,14 +11,14 @@ INCLUDE	   = -I./queue \
              -I/usr/local/include -I/usr/local/include/linux
 
 CFLAGS      := $(DEBUG) -pedantic -Wall $(INCLUDE) -Winline -pipe $(CARGS) -Wl,--add-stdcall-alias -fPIC
-LIBS         =  -lm -lpthread -lstdc++
+LIBS         = -lgpiod -lm -lpthread -lstdc++
 
 CLASS_PATH = ../target
 vpath %.class $(CLASS_PATH)
 
 # Should not alter anything below this line
 ###############################################################################
-SRC	=   CC1101.cpp Decoder.cpp GPIO.cpp Receiver.cpp RXB.cpp HidekiJniWrapper.cpp
+SRC	=   CC1101.cpp Decoder.cpp Receiver.cpp RXB.cpp HidekiJniWrapper.cpp
 
 OBJ =	$(SRC:.c=.o)
 
@@ -51,7 +51,6 @@ uninstall:
 
 CC1101.o: CC1101.h
 Decoder.o: Decoder.h
-GPIO.o: GPIO.h
 Receiver.o: Receiver.h
 RXB.o: RXB.h
 HidekiJniWrapper.o: HidekiJniWrapper.h

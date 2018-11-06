@@ -1,10 +1,9 @@
 #include "Receiver.h"
-#include "GPIO.h"
 
-#include <fcntl.h>
-#include <math.h>
-#include <poll.h>
-#include <unistd.h>
+#include <gpiod.h>
+#include <linux/gpio.h>
+#include <sys/ioctl.h>
+#include <cmath>
 
 Receiver::Receiver(const int& pin)
   :mPin(pin),
@@ -67,12 +66,32 @@ void* Receiver::receive(void* parameter)
 {
   Receiver* receiver = reinterpret_cast<Receiver*>(parameter);
 
+  static char buffer[FILENAME_MAX] = { '\0' };
   pthread_mutex_lock(&receiver->mStartMutex);
-  struct pollfd polldat = { .fd = -1, .events = POLLPRI | POLLERR, .revents = 0 };
-  if (GPIO::enable(receiver->mPin, GPIO::Direction::IN, GPIO::Edge::BOTH) == 0) {
-    static char file[FILENAME_MAX] = { '\0' }; // Received data
-    snprintf(file, FILENAME_MAX, "/sys/class/gpio/gpio%d/value", receiver->mPin.load());
-    polldat.fd = ::open(file, O_RDONLY | O_SYNC);
+
+  struct gpiod_line *line = nullptr;
+  struct gpiod_chip *chip = gpiod_chip_open("/dev/gpiochip0");
+  if (chip != nullptr) {
+    line  = gpiod_chip_get_line(chip, receiver->mPin);
+  } else {
+    snprintf(buffer, sizeof(buffer), "Unable to open gpio device for pin %d", receiver->mPin.load());
+    perror(buffer);
+  }
+
+  if (line != nullptr) {
+    if (gpiod_line_request_both_edges_events(line, "hideki") != 0) {
+      line = nullptr;
+      snprintf(buffer, sizeof(buffer), "Unable to request event handling for pin %d", receiver->mPin.load());
+      perror(buffer);
+    }
+  } else {
+    snprintf(buffer, sizeof(buffer), "Unable to open gpio line for pin %d", receiver->mPin.load());
+    perror(buffer);
+  }
+
+  if ((chip != nullptr) && (line == nullptr)) {
+    gpiod_chip_close(chip);
+    chip = nullptr;
   }
 
   receiver->mReceiverThreadIsAlive = true;
@@ -80,42 +99,47 @@ void* Receiver::receive(void* parameter)
   pthread_mutex_unlock(&receiver->mStartMutex);
 
   // Start receiver
-  while (!receiver->mStopReceiverThread && (polldat.fd >= 0)) {
+  while (!receiver->mStopReceiverThread && (chip != nullptr)) {
     PulseDurationType duration = 0;
-    if (lseek(polldat.fd, 0, SEEK_SET) >= 0) { // Catch next edge time
-      static struct timespec tOld;
-      clock_gettime(CLOCK_REALTIME, &tOld);
-      int pc = poll(&polldat, 1, receiver->mTimeout);
-      static struct timespec tNew;
-      clock_gettime(CLOCK_REALTIME, &tNew);
 
-      if ((pc > 0) && (polldat.revents & POLLPRI)) {
-        static uint8_t value = 0;
-        if (read(polldat.fd, &value, 1) >= 0) {
-          struct timespec diff = {
-            .tv_sec = tNew.tv_sec - tOld.tv_sec,
-            .tv_nsec = tNew.tv_nsec - tOld.tv_nsec
-          };
-          if (diff.tv_nsec < 0) {
-            diff.tv_sec  -= 1;
-            diff.tv_nsec += 1000000000;
-          }
-          // Calculate pulse length in microseconds
-          duration = round(diff.tv_sec * 1000000.0 + diff.tv_nsec / 1000.0);
-        }
-      }
+    static struct timespec tOld;
+    clock_gettime(CLOCK_REALTIME, &tOld);
+
+    static struct timespec timeout = {};
+    timeout.tv_sec = receiver->mTimeout.load() / 1000,
+    timeout.tv_nsec = (receiver->mTimeout.load() - timeout.tv_sec * 1000) * 1000000;
+
+    int result = 0;
+    do {
+      result = gpiod_line_event_wait(line, receiver->mTimeout.load() < 0 ? nullptr : &timeout);
+    } while (result <=0);
+    
+    struct gpiod_line_event event;
+    result = gpiod_line_event_read(line, &event);
+    
+    static struct timespec tNew;
+    clock_gettime(CLOCK_REALTIME, &tNew);
+
+    struct timespec diff = {
+      .tv_sec = tNew.tv_sec - tOld.tv_sec,
+      .tv_nsec = tNew.tv_nsec - tOld.tv_nsec
+    };
+    if (diff.tv_nsec < 0) {
+      diff.tv_sec  -= 1;
+      diff.tv_nsec += 1000000000;
     }
+    // Calculate pulse length in microseconds
+    duration = std::round(diff.tv_sec * 1000000.0 + diff.tv_nsec / 1000.0);
 
     if (duration > 20) { // Filter pulses shorter than 20 microseconds
       receiver->mPulseData.enqueue(duration);
     }
   }
 
-  if (polldat.fd >= 0) {
-    close(polldat.fd);
-    polldat.fd = -1;
+  if (chip != nullptr) {
+    gpiod_chip_close(chip);
+    chip = nullptr;
   }
-  GPIO::disable(receiver->mPin);
   receiver->mReceiverThreadIsAlive = false;
 
   return nullptr;

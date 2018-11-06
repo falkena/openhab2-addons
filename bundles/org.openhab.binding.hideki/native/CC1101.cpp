@@ -65,7 +65,7 @@ CC1101::CC1101(const int& pin, std::string device, const int& interrupt)
   if (mSpiDevice >= 0) {
     // http://www.ti.com/lit/ds/symlink/cc1101.pdf
     // http://www.ti.com/lit/an/swra215e/swra215e.pdf
-    // Settings: 433.92 MHz base frequency 16.0179 kBaud data rate
+    // Settings: 433.92 MHz base frequency 6.00052 kBaud data rate
     //           325kHz bandwidth, 350kHz channel spacing, 152.34kHz IF frequency
     std::array<uint8_t, 48> buffer = { 0x00 | WRITE_BURST,
       0x2E,  // IOCFG2        High-Impedance - GDO2 is not connected
@@ -85,7 +85,7 @@ CC1101::CC1101(const int& pin, std::string device, const int& interrupt)
       0xB0,  // FREQ1         Frequency Control Word, Middle Byte
       0x72,  // FREQ0         Frequency Control Word, Low Byte
       0x57,  // MDMCFG4       Modem Configuration
-      0x4B,  // MDMCFG3       Modem Configuration
+      0xE4,  // MDMCFG3       Modem Configuration
       0x30,  // MDMCFG2       Modem Configuration
       0x23,  // MDMCFG1       Modem Configuration
       0xB9,  // MDMCFG0       Modem Configuration
@@ -97,7 +97,7 @@ CC1101::CC1101(const int& pin, std::string device, const int& interrupt)
       0x6C,  // BSCFG         Bit Synchronization Configuration
       0x07,  // AGCCTRL2      AGC Control
       0x00,  // AGCCTRL1      AGC Control
-      0x90,  // AGCCTRL0      AGC Control
+      0x92,  // AGCCTRL0      AGC Control
       0x87,  // WOREVT1       High Byte Event0 Timeout
       0x6B,  // WOREVT0       Low Byte Event0 Timeout
       0xFB,  // WORCTRL       Wake On Radio Control
