@@ -21,15 +21,13 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.io.net.http.TrustAllTrustManager;
 
 /**
  * A "raw MQTT" client for sending custom "get password" request.
@@ -93,33 +91,14 @@ public class RawMQTT {
         }
     }
 
-    // Roomba MQTT is using SSL with custom root CA certificate.
-    private static class MQTTTrustManager implements X509TrustManager {
-        @Override
-        public X509Certificate @Nullable [] getAcceptedIssuers() {
-            return null;
-        }
-
-        @Override
-        public void checkClientTrusted(X509Certificate @Nullable [] arg0, @Nullable String arg1)
-                throws CertificateException {
-        }
-
-        @Override
-        public void checkServerTrusted(X509Certificate @Nullable [] certs, @Nullable String authMethod)
-                throws CertificateException {
-        }
-    }
-
     public static TrustManager[] getTrustManagers() {
-        return new TrustManager[] { new MQTTTrustManager() };
+        return new TrustManager[] { TrustAllTrustManager.getInstance() };
     }
 
     public RawMQTT(InetAddress host, int port) throws KeyManagementException, NoSuchAlgorithmException, IOException {
-        SSLContext sc = SSLContext.getInstance("SSL");
-
-        sc.init(null, getTrustManagers(), new java.security.SecureRandom());
-        socket = sc.getSocketFactory().createSocket(host, ROOMBA_MQTT_PORT);
+        SSLContext context = SSLContext.getInstance("SSL");
+        context.init(null, getTrustManagers(), new java.security.SecureRandom());
+        socket = context.getSocketFactory().createSocket(host, ROOMBA_MQTT_PORT);
         socket.setSoTimeout(3000);
     }
 

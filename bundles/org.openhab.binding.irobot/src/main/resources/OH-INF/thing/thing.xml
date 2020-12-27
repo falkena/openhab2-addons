@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="irobot"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<thing-type id="roomba">
+		<label>Roomba</label>
+		<description>A Roomba vacuum robot</description>
+		<category>CleaningRobot</category>
+
+		<channel-groups>
+			<channel-group id="network" typeId="networkgroup"/>
+			<channel-group id="position" typeId="positiongroup"/>
+			<channel-group id="schedule" typeId="schedulegroup"/>
+			<channel-group id="control" typeId="controlgroup"/>
+			<channel-group id="state" typeId="stategroup"/>
+			<channel-group id="mission" typeId="missiongroup"/>
+		</channel-groups>
+
+		<config-description-ref uri="thing-type:irobot:thing"/>
+	</thing-type>
+</thing:thing-descriptions>

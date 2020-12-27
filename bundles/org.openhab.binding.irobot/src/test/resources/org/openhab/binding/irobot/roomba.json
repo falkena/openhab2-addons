@@ -1,0 +1,11 @@
+{
+  "state": {
+    "reported": {
+      "name": "Roomba",
+      "pose": { "theta": 61, "point": { "x": 171, "y": -113 } }
+    }
+  },
+  "wifistat": {
+    "signal": { "rssi": -43, "snr": 40 }
+  }
+}

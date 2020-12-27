@@ -12,14 +12,17 @@
  */
 package org.openhab.binding.irobot.internal;
 
-import static org.openhab.binding.irobot.internal.IRobotBindingConstants.THING_TYPE_ROOMBA;
+import static org.openhab.binding.irobot.internal.IRobotBindingConstants.*;
 
 import java.util.Collections;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.irobot.internal.handler.RoombaHandler;
+import org.openhab.binding.irobot.internal.config.IRobotConfiguration;
+import org.openhab.binding.irobot.internal.handler.Roomba980Handler;
+import org.openhab.binding.irobot.internal.handler.RoombaI7Handler;
+import org.openhab.core.config.core.Configuration;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.BaseThingHandlerFactory;
@@ -34,8 +37,8 @@ import org.osgi.service.component.annotations.Component;
  * @author hkuhn42 - Initial contribution
  * @author Pavel Fedin - rename and update
  */
-@Component(configurationPid = "binding.irobot", service = ThingHandlerFactory.class)
 @NonNullByDefault
+@Component(service = ThingHandlerFactory.class, configurationPid = "binding.irobot")
 public class IRobotHandlerFactory extends BaseThingHandlerFactory {
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections.singleton(THING_TYPE_ROOMBA);
@@ -50,7 +53,13 @@ public class IRobotHandlerFactory extends BaseThingHandlerFactory {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (thingTypeUID.equals(THING_TYPE_ROOMBA)) {
-            return new RoombaHandler(thing);
+            final Configuration config = thing.getConfiguration();
+            final String family = config.as(IRobotConfiguration.class).getFamily();
+            if (family.equals(ROOMBA_980)) {
+                return new Roomba980Handler(thing);
+            } else if (family.equals(ROOMBA_I7)) {
+                return new RoombaI7Handler(thing);
+            }
         }
 
         return null;
