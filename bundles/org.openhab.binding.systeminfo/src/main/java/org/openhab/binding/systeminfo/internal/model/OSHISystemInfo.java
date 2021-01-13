@@ -14,8 +14,8 @@ package org.openhab.binding.systeminfo.internal.model;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.osgi.service.component.annotations.Component;
@@ -34,6 +34,7 @@ import oshi.hardware.NetworkIF;
 import oshi.hardware.PowerSource;
 import oshi.hardware.Sensors;
 import oshi.hardware.VirtualMemory;
+import oshi.software.os.FileSystem;
 import oshi.software.os.OSFileStore;
 import oshi.software.os.OSProcess;
 import oshi.software.os.OperatingSystem;
@@ -58,17 +59,17 @@ public class OSHISystemInfo implements SystemInfoInterface {
 
     private final Logger logger = LoggerFactory.getLogger(OSHISystemInfo.class);
 
-    private @NonNullByDefault({}) HardwareAbstractionLayer hal;
     private @NonNullByDefault({}) OperatingSystem operatingSystem;
+    private @NonNullByDefault({}) FileSystem fileSystem;
 
     private @NonNullByDefault({}) ComputerSystem computerSystem;
+
     private @NonNullByDefault({}) CentralProcessor cpu;
-    private @NonNullByDefault({}) Display[] displays;
-    private @NonNullByDefault({}) HWDiskStore[] drives;
-    private @NonNullByDefault({}) OSFileStore[] fileStores;
+    private @NonNullByDefault({}) List<Display> displays;
+    private @NonNullByDefault({}) List<HWDiskStore> drives;
     private @NonNullByDefault({}) GlobalMemory memory;
-    private @NonNullByDefault({}) NetworkIF[] networks;
-    private @NonNullByDefault({}) PowerSource[] powerSources;
+    private @NonNullByDefault({}) List<NetworkIF> networks;
+    private @NonNullByDefault({}) List<PowerSource> powerSources;
     private @NonNullByDefault({}) Sensors sensors;
 
     private long[] oldCpuTicks;
@@ -83,14 +84,14 @@ public class OSHISystemInfo implements SystemInfoInterface {
         logger.debug("OSHISystemInfo service is created");
 
         SystemInfo systemInfo = new SystemInfo();
-        hal = systemInfo.getHardware();
         operatingSystem = systemInfo.getOperatingSystem();
+        fileSystem = operatingSystem.getFileSystem();
 
+        HardwareAbstractionLayer hal = systemInfo.getHardware();
         computerSystem = hal.getComputerSystem();
         cpu = hal.getProcessor();
         displays = hal.getDisplays();
         drives = hal.getDiskStores();
-        fileStores = operatingSystem.getFileSystem().getFileStores();
         memory = hal.getMemory();
         networks = hal.getNetworkIFs();
         powerSources = hal.getPowerSources();
@@ -99,11 +100,12 @@ public class OSHISystemInfo implements SystemInfoInterface {
         oldCpuTicks = cpu.getSystemCpuLoadTicks();
     }
 
-    private Object getDevice(Object @Nullable [] devices, int index) throws IllegalArgumentException {
-        if ((devices == null) || (index >= devices.length)) {
+    private Object getDevice(List<? extends Object> devices, int index) throws IllegalArgumentException {
+        try {
+            return devices.get(index);
+        } catch (IndexOutOfBoundsException exception) {
             throw new IllegalArgumentException("Device with index " + index + " can not be found.");
         }
-        return devices[index];
     }
 
     private OSProcess getProcess(int pid) throws IllegalArgumentException {
@@ -156,32 +158,32 @@ public class OSHISystemInfo implements SystemInfoInterface {
 
     @Override
     public @Nullable BigDecimal getStorageTotal(int index) throws IllegalArgumentException {
-        OSFileStore store = (OSFileStore) getDevice(fileStores, index);
-        store.updateAtrributes();
+        OSFileStore store = (OSFileStore) getDevice(fileSystem.getFileStores(), index);
+        store.updateAttributes();
         long total = store.getTotalSpace();
         return total < 0 ? null : BigDecimal.valueOf(total);
     }
 
     @Override
     public @Nullable BigDecimal getStorageAvailable(int index) throws IllegalArgumentException {
-        OSFileStore store = (OSFileStore) getDevice(fileStores, index);
-        store.updateAtrributes();
+        OSFileStore store = (OSFileStore) getDevice(fileSystem.getFileStores(), index);
+        store.updateAttributes();
         long available = store.getUsableSpace();
         return available < 0 ? null : BigDecimal.valueOf(available);
     }
 
     @Override
     public @Nullable BigDecimal getStorageUsed(int index) throws IllegalArgumentException {
-        OSFileStore store = (OSFileStore) getDevice(fileStores, index);
-        store.updateAtrributes();
+        OSFileStore store = (OSFileStore) getDevice(fileSystem.getFileStores(), index);
+        store.updateAttributes();
         long used = store.getTotalSpace() - store.getUsableSpace();
         return used < 0 ? null : BigDecimal.valueOf(used);
     }
 
     @Override
     public @Nullable BigDecimal getStorageAvailablePercent(int index) throws IllegalArgumentException {
-        OSFileStore store = (OSFileStore) getDevice(fileStores, index);
-        store.updateAtrributes();
+        OSFileStore store = (OSFileStore) getDevice(fileSystem.getFileStores(), index);
+        store.updateAttributes();
         long total = store.getTotalSpace();
         if (total > 0) {
             long available = store.getUsableSpace();
@@ -194,8 +196,8 @@ public class OSHISystemInfo implements SystemInfoInterface {
 
     @Override
     public @Nullable BigDecimal getStorageUsedPercent(int index) throws IllegalArgumentException {
-        OSFileStore store = (OSFileStore) getDevice(fileStores, index);
-        store.updateAtrributes();
+        OSFileStore store = (OSFileStore) getDevice(fileSystem.getFileStores(), index);
+        store.updateAttributes();
         long total = store.getTotalSpace();
         if (total > 0) {
             long used = total - store.getUsableSpace();
@@ -208,22 +210,22 @@ public class OSHISystemInfo implements SystemInfoInterface {
 
     @Override
     public String getStorageName(int index) throws IllegalArgumentException {
-        OSFileStore store = (OSFileStore) getDevice(fileStores, index);
-        store.updateAtrributes();
+        OSFileStore store = (OSFileStore) getDevice(fileSystem.getFileStores(), index);
+        store.updateAttributes();
         return store.getName();
     }
 
     @Override
     public String getStorageType(int index) throws IllegalArgumentException {
-        OSFileStore store = (OSFileStore) getDevice(fileStores, index);
-        store.updateAtrributes();
+        OSFileStore store = (OSFileStore) getDevice(fileSystem.getFileStores(), index);
+        store.updateAttributes();
         return store.getType();
     }
 
     @Override
     public String getStorageDescription(int index) throws IllegalArgumentException {
-        OSFileStore store = (OSFileStore) getDevice(fileStores, index);
-        store.updateAtrributes();
+        OSFileStore store = (OSFileStore) getDevice(fileSystem.getFileStores(), index);
+        store.updateAttributes();
         return store.getDescription();
     }
 
@@ -258,8 +260,11 @@ public class OSHISystemInfo implements SystemInfoInterface {
 
     @Override
     public @Nullable BigDecimal getSensorsFanSpeed(int index) throws IllegalArgumentException {
-        int speed = (int) getDevice(ArrayUtils.toObject(sensors.getFanSpeeds()), index);
-        return speed > 0 ? BigDecimal.valueOf(speed) : null;
+        int[] speeds = sensors.getFanSpeeds();
+        if ((speeds == null) || (speeds.length <= index)) {
+            throw new IllegalArgumentException("Device with index " + index + " can not be found.");
+        }
+        return speeds[0] > 0 ? BigDecimal.valueOf(speeds[0]) : null;
     }
 
     @Override
@@ -278,15 +283,11 @@ public class OSHISystemInfo implements SystemInfoInterface {
     }
 
     @Override
-    public BigDecimal getBatteryRemainingCapacity(int index) throws IllegalArgumentException {
+    public @Nullable BigDecimal getBatteryRemainingCapacity(int index) throws IllegalArgumentException {
         PowerSource source = (PowerSource) getDevice(powerSources, index);
         source.updateAttributes();
         double remaining = source.getRemainingCapacityPercent();
-        if (remaining >= 0.0) {
-            return getPercentsValue(remaining);
-        } else {
-            throw new IllegalArgumentException("Called with invalid device index");
-        }
+        return remaining < 0.0 ? null : getPercentsValue(source.getRemainingCapacityPercent());
     }
 
     @Override
@@ -332,20 +333,23 @@ public class OSHISystemInfo implements SystemInfoInterface {
     }
 
     @Override
-    public String getDriveName(int deviceIndex) throws IllegalArgumentException {
-        HWDiskStore drive = (HWDiskStore) getDevice(drives, deviceIndex);
+    public String getDriveName(int index) throws IllegalArgumentException {
+        HWDiskStore drive = (HWDiskStore) getDevice(drives, index);
+        drive.updateAttributes();
         return drive.getName();
     }
 
     @Override
-    public String getDriveModel(int deviceIndex) throws IllegalArgumentException {
-        HWDiskStore drive = (HWDiskStore) getDevice(drives, deviceIndex);
+    public String getDriveModel(int index) throws IllegalArgumentException {
+        HWDiskStore drive = (HWDiskStore) getDevice(drives, index);
+        drive.updateAttributes();
         return drive.getModel();
     }
 
     @Override
-    public String getDriveSerialNumber(int deviceIndex) throws IllegalArgumentException {
-        HWDiskStore drive = (HWDiskStore) getDevice(drives, deviceIndex);
+    public String getDriveSerialNumber(int index) throws IllegalArgumentException {
+        HWDiskStore drive = (HWDiskStore) getDevice(drives, index);
+        drive.updateAttributes();
         return drive.getSerial();
     }
 
@@ -479,7 +483,10 @@ public class OSHISystemInfo implements SystemInfoInterface {
         NetworkIF network = (NetworkIF) getDevice(networks, index);
         network.updateAttributes();
         String[] ipAddresses = network.getIPv4addr();
-        return (String) getDevice(ipAddresses, 0);
+        if ((ipAddresses == null) || (ipAddresses.length <= 0)) {
+            throw new IllegalArgumentException("Device with index " + index + " can not be found.");
+        }
+        return ipAddresses[0];
     }
 
     @Override

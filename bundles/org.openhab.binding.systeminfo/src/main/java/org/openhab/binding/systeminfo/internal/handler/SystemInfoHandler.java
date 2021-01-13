@@ -128,7 +128,8 @@ public class SystemInfoHandler extends BaseBridgeHandler {
                         }
                         case CHANNEL_BATTERY_REMAINING_CAPACITY: {
                             BigDecimal state = systeminfo.getBatteryRemainingCapacity(deviceIndex);
-                            updateState(channelUID, new QuantityType<>(state, Units.PERCENT));
+                            updateState(channelUID,
+                                    state != null ? new QuantityType<>(state, Units.PERCENT) : UnDefType.UNDEF);
                             break;
                         }
                         case CHANNEL_BATTERY_REMAINING_TIME: {

@@ -133,7 +133,7 @@ public interface SystemInfoInterface {
      * @return percentage value /0-100/
      * @throws IllegalArgumentException
      */
-    public BigDecimal getBatteryRemainingCapacity(int index) throws IllegalArgumentException;
+    public @Nullable BigDecimal getBatteryRemainingCapacity(int index) throws IllegalArgumentException;
 
     // Memory info
     /**
