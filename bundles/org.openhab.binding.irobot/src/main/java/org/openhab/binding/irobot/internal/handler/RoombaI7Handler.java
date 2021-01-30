@@ -1,19 +1,16 @@
 /**
- * Copyright (c) 2010-2021 Contributors to the openHAB project
+ * Copyright (c) 2021- Alexander Falkenstern
  *
- * See the NOTICE file(s) distributed with this work for additional
- * information.
- *
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License 2.0 which is available at
- * http://www.eclipse.org/legal/epl-2.0
- *
- * SPDX-License-Identifier: EPL-2.0
+ * License: https://www.gnu.org/licenses/gpl-3.0.txt
  */
 package org.openhab.binding.irobot.internal.handler;
 
 import static org.openhab.binding.irobot.internal.IRobotBindingConstants.*;
 
+import java.awt.geom.Point2D;
+import java.io.ByteArrayOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -21,11 +18,15 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import javax.imageio.ImageIO;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.irobot.internal.utils.IRobotMap;
 import org.openhab.binding.irobot.internal.utils.JSONUtils;
 import org.openhab.binding.irobot.internal.utils.Requests;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.RawType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ChannelGroupUID;
 import org.openhab.core.thing.ChannelUID;
@@ -33,6 +34,7 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
+import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +50,8 @@ import com.google.gson.*;
 public class RoombaI7Handler extends RoombaCommonHandler {
     private final Logger logger = LoggerFactory.getLogger(RoombaI7Handler.class);
     private final JsonParser jsonParser = new JsonParser();
+
+    private IRobotMap lastCleanMap = new IRobotMap();
 
     public RoombaI7Handler(Thing thing) {
         super(thing);
@@ -111,8 +115,7 @@ public class RoombaI7Handler extends RoombaCommonHandler {
             if (CHANNEL_CONTROL_COMMAND.equals(channelId)) {
                 Boolean isPaused = Boolean.FALSE;
                 final ChannelGroupUID groupUID = new ChannelGroupUID(channelUID.getThingUID(), INTERNAL_GROUP_ID);
-                final State cache = getCacheEntry(new ChannelUID(groupUID, CHANNEL_INTERNAL_LAST_COMMAND));
-                final StringType lastCommand = (cache != null) ? cache.as(StringType.class) : null;
+                final State lastCommand = getCacheEntry(new ChannelUID(groupUID, CHANNEL_INTERNAL_LAST_COMMAND));
                 if (lastCommand != null) {
                     final JsonElement tree = jsonParser.parse(lastCommand.toString());
                     isPaused = JSONUtils.getAsBoolean("command", tree);
@@ -140,6 +143,47 @@ public class RoombaI7Handler extends RoombaCommonHandler {
         // Skip desired messages, since AWS-related stuff
         if (JSONUtils.getAsJSONString("desired", tree) != null) {
             return;
+        }
+
+        State phase = getCacheEntry(new ChannelUID(thingUID, MISSION_GROUP_ID, CHANNEL_MISSION_PHASE));
+        final JsonElement status = JSONUtils.find("cleanMissionStatus", tree);
+        if (status != null) {
+            // I7: cycle = "clean", 980: cycle = "quick"
+            final String currentPhase = JSONUtils.getAsString("phase", status);
+            if ("run".equals(currentPhase) && ((phase == null) || !phase.equals(currentPhase))) {
+                lastCleanMap.clear();
+                updateState(new ChannelUID(thingUID, MISSION_GROUP_ID, CHANNEL_MISSION_MAP), UnDefType.UNDEF);
+            } else if ("hmPostMsn".equals(currentPhase) || "hmUsrDock".equals(currentPhase)) {
+                try {
+                    FileWriter writer = new FileWriter("D:\\outputI7.txt");
+                    for (Point2D point : lastCleanMap.getPoints()) {
+                        writer.write(point.toString() + System.lineSeparator());
+                    }
+                    writer.close();
+                } catch (IOException exception) {
+                    logger.debug("Can not convert image: {}", exception.getMessage());
+                }
+
+                try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
+                    ImageIO.write(lastCleanMap, "png", stream);
+                    final RawType data = new RawType(stream.toByteArray(), "image/png");
+                    updateState(new ChannelUID(thingUID, MISSION_GROUP_ID, CHANNEL_MISSION_MAP), data);
+                } catch (IOException exception) {
+                    updateState(new ChannelUID(thingUID, MISSION_GROUP_ID, CHANNEL_MISSION_MAP), UnDefType.UNDEF);
+                    logger.debug("Can not convert image: {}", exception.getMessage());
+                }
+            }
+            phase = new StringType(currentPhase);
+        }
+
+        final JsonElement position = JSONUtils.find("pose", tree);
+        if ((position != null) && (phase != null) && phase.equals("run")) {
+            final BigDecimal xPos = JSONUtils.getAsDecimal("x", position);
+            final BigDecimal yPos = JSONUtils.getAsDecimal("y", position);
+            if ((xPos != null) && (yPos != null)) {
+                // I7: cycle = "clean", 980: cycle = "quick"
+                lastCleanMap.add(xPos.doubleValue(), yPos.doubleValue());
+            }
         }
 
         // @formatter:off
@@ -185,6 +229,11 @@ public class RoombaI7Handler extends RoombaCommonHandler {
                     updateState(new ChannelUID(groupUID, DAY_OF_WEEK[i] + "_time"), time[i]);
                 }
             }
+        }
+
+        final String mac = JSONUtils.getAsString("wlan0HwAddr", tree);
+        if (mac != null) {
+            updateState(new ChannelUID(thingUID, NETWORK_GROUP_ID, CHANNEL_NETWORK_MAC), mac.toUpperCase());
         }
 
         final JsonElement lastCommand = JSONUtils.find("lastCommand", tree);

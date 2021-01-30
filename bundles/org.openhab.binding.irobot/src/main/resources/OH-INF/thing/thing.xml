@@ -10,12 +10,12 @@
 		<category>CleaningRobot</category>
 
 		<channel-groups>
-			<channel-group id="network" typeId="networkgroup"/>
-			<channel-group id="position" typeId="positiongroup"/>
-			<channel-group id="schedule" typeId="schedulegroup"/>
-			<channel-group id="control" typeId="controlgroup"/>
-			<channel-group id="state" typeId="stategroup"/>
-			<channel-group id="mission" typeId="missiongroup"/>
+			<channel-group id="network" typeId="network"/>
+			<channel-group id="position" typeId="position"/>
+			<channel-group id="schedule" typeId="schedule"/>
+			<channel-group id="control" typeId="control"/>
+			<channel-group id="state" typeId="state"/>
+			<channel-group id="mission" typeId="mission"/>
 		</channel-groups>
 
 		<config-description-ref uri="thing-type:irobot:thing"/>

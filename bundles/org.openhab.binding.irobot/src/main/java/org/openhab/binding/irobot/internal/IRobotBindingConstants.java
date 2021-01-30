@@ -99,6 +99,7 @@ public class IRobotBindingConstants {
     public static final String PASSES_1 = "1";
     public static final String PASSES_2 = "2";
 
+    public static final String CHANNEL_CONTROL_AUDIO = "audio";
     public static final String CHANNEL_CONTROL_MAP_UPLOAD = "upload_map";
 
     public static final String CHANNEL_CONTROL_COMMAND = "command";
@@ -118,6 +119,7 @@ public class IRobotBindingConstants {
     public static final String MISSION_GROUP_ID = "mission";
     public static final String CHANNEL_MISSION_CYCLE = "cycle";
     public static final String CHANNEL_MISSION_ERROR = "error";
+    public static final String CHANNEL_MISSION_MAP = "map";
     public static final String CHANNEL_MISSION_PHASE = "phase";
 
     /**

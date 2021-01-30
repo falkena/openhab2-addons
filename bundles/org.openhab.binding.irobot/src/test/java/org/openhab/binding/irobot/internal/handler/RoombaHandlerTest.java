@@ -15,6 +15,7 @@ package org.openhab.binding.irobot.internal.handler;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -46,19 +47,19 @@ class RoombaHandlerTest {
     private static final String IP_ADDRESS = "<iRobotIP>";
     private static final String PASSWORD = "<PasswordForIRobot>";
 
-    private RoombaHandler handler;
+    private RoombaCommonHandler handler;
     private @Mock Thing myThing;
     private ThingHandlerCallback callback;
 
     @BeforeEach
-    void setUp() throws Exception {
-        Logger l = LoggerFactory.getLogger(RoombaHandler.class);
+    void setupTest() throws Exception {
+        Logger l = LoggerFactory.getLogger(RoombaCommonHandler.class);
         Field f = l.getClass().getDeclaredField("currentLogLevel");
         f.setAccessible(true);
         f.set(l, LocationAwareLogger.TRACE_INT);
 
         Configuration config = new Configuration();
-        config.put("ipaddress", RoombaHandlerTest.IP_ADDRESS);
+        config.put("address", RoombaHandlerTest.IP_ADDRESS);
         config.put("password", RoombaHandlerTest.PASSWORD);
 
         Mockito.when(myThing.getConfiguration()).thenReturn(config);
@@ -66,8 +67,12 @@ class RoombaHandlerTest {
 
         callback = Mockito.mock(ThingHandlerCallback.class);
 
-        handler = new RoombaHandler(myThing);
+        handler = new RoombaCommonHandler(myThing);
         handler.setCallback(callback);
+    }
+
+    @AfterEach
+    public void cleanupTest() {
     }
 
     // @Test

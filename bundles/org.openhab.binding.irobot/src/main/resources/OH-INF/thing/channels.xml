@@ -10,11 +10,10 @@
 		<state readOnly="true"></state>
 	</channel-type>
 
-	<channel-group-type id="networkgroup">
+	<channel-group-type id="network">
 		<label>WiFi Signal</label>
 		<description>WiFi signal information</description>
 		<channels>
-			<channel id="command" typeId="command"/>
 			<channel id="mac" typeId="mac"/>
 			<channel id="rssi" typeId="rssi"/>
 			<channel id="snr" typeId="snr"/>
@@ -46,7 +45,7 @@
 		<state readOnly="true"></state>
 	</channel-type>
 
-	<channel-group-type id="positiongroup">
+	<channel-group-type id="position">
 		<label>Position</label>
 		<description>Current position information</description>
 		<channels>
@@ -66,7 +65,7 @@
 		<state readOnly="true"></state>
 	</channel-type>
 
-	<channel-group-type id="schedulegroup">
+	<channel-group-type id="schedule">
 		<label>Schedule</label>
 		<description>Current cleaning schedule</description>
 		<channels>
@@ -140,7 +139,7 @@
 		<category>Time</category>
 	</channel-type>
 
-	<channel-group-type id="stategroup">
+	<channel-group-type id="state">
 		<label>State</label>
 		<description>Robot state</description>
 		<channels>
@@ -176,11 +175,12 @@
 		<state readOnly="true"/>
 	</channel-type>
 
-	<channel-group-type id="controlgroup">
+	<channel-group-type id="control">
 		<label>Control</label>
 		<description>Robot cleaning control</description>
 		<channels>
 			<channel id="command" typeId="command"/>
+			<channel id="audio" typeId="audio"/>
 			<channel id="always_finish" typeId="always_finish"/>
 			<channel id="clean_passes" typeId="clean_passes"/>
 			<channel id="upload_map" typeId="upload_map"/>
@@ -206,6 +206,11 @@
 			</options>
 		</state>
 	</channel-type>
+	<channel-type id="audio">
+		<item-type>Switch</item-type>
+		<label>Acoustic feedback</label>
+		<description>Give acoustic feedback on command/state change</description>
+	</channel-type>
 	<channel-type id="always_finish">
 		<item-type>Switch</item-type>
 		<label>Always finish</label>
@@ -219,7 +224,7 @@
 	<channel-type id="upload_map">
 		<item-type>Switch</item-type>
 		<label>Upload map</label>
-		<description>Allow map upload to IRobot cloud</description>
+		<description>Allow map upload to iRobot cloud</description>
 	</channel-type>
 	<channel-type id="power_boost">
 		<item-type>String</item-type>
@@ -246,13 +251,14 @@
 		</state>
 	</channel-type>
 
-	<channel-group-type id="missiongroup">
+	<channel-group-type id="mission">
 		<label>Mission</label>
 		<description>Robot cleaning control</description>
 		<channels>
 			<channel id="cycle" typeId="cycle"/>
-			<channel id="error" typeId="error"/>
+			<channel id="map" typeId="map"/>
 			<channel id="phase" typeId="phase"/>
+			<channel id="error" typeId="error"/>
 		</channels>
 	</channel-group-type>
 	<channel-type id="cycle">
@@ -266,6 +272,12 @@
 				<option value="spot">Spot</option>
 			</options>
 		</state>
+	</channel-type>
+	<channel-type id="map">
+		<item-type>Image</item-type>
+		<label>Map</label>
+		<description>Map of the latest run</description>
+		<state readOnly="true"></state>
 	</channel-type>
 	<channel-type id="phase">
 		<item-type>String</item-type>

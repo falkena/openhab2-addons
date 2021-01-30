@@ -25,10 +25,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZonedDateTime;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -44,10 +41,7 @@ import org.openhab.core.io.transport.mqtt.MqttConnectionObserver;
 import org.openhab.core.io.transport.mqtt.MqttConnectionState;
 import org.openhab.core.io.transport.mqtt.MqttMessageSubscriber;
 import org.openhab.core.io.transport.mqtt.reconnect.PeriodicReconnectStrategy;
-import org.openhab.core.library.types.DateTimeType;
-import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.library.types.StringType;
+import org.openhab.core.library.types.*;
 import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
@@ -107,7 +101,10 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
         } else if (command instanceof OnOffType) {
             final JsonObject request = new JsonObject();
             final String channelId = channelUID.getIdWithoutGroup();
-            if (CHANNEL_CONTROL_ALWAYS_FINISH.equals(channelId)) {
+            if (CHANNEL_CONTROL_AUDIO.equals(channelId)) {
+                request.addProperty("audio", command.equals(OnOffType.ON));
+                sendRequest(new Requests.DeltaRequest(request));
+            } else if (CHANNEL_CONTROL_ALWAYS_FINISH.equals(channelId)) {
                 // Binding operate with inverse of "binPause"
                 request.addProperty("binPause", command.equals(OnOffType.OFF));
                 sendRequest(new Requests.DeltaRequest(request));
@@ -334,7 +331,8 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
         final JsonParser jsonParser = new JsonParser();
         final JsonElement tree = jsonParser.parse(json);
 
-        reportBatteryState(tree);
+        final Boolean audio = JSONUtils.getAsBoolean("audio", tree);
+        updateState(new ChannelUID(thingUID, CONTROL_GROUP_ID, CHANNEL_CONTROL_AUDIO), audio);
 
         final Boolean binPause = JSONUtils.getAsBoolean("binPause", tree);
         final Boolean continueVacuum = (binPause != null) ? !binPause : null;
@@ -343,21 +341,17 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
         final Boolean mapUpload = JSONUtils.getAsBoolean("mapUploadAllowed", tree);
         updateState(new ChannelUID(thingUID, CONTROL_GROUP_ID, CHANNEL_CONTROL_MAP_UPLOAD), mapUpload);
 
-        reportBinState(tree);
-        reportCleanPasses(tree);
-        reportMissionState(tree);
-        reportNetworkState(tree);
-        reportPositionState(tree);
-    }
-
-    private void reportBatteryState(final JsonElement tree) {
-        final ThingUID thingUID = thing.getUID();
-
         final BigDecimal charge = JSONUtils.getAsDecimal("batPct", tree);
         updateState(new ChannelUID(thingUID, STATE_GROUP_ID, CHANNEL_STATE_CHARGE), charge);
 
         final String type = JSONUtils.getAsString("batteryType", tree);
         updateState(new ChannelUID(thingUID, STATE_GROUP_ID, CHANNEL_STATE_TYPE), type);
+
+        reportBinState(tree);
+        reportCleanPasses(tree);
+        reportMissionState(tree);
+        reportNetworkState(tree);
+        reportPositionState(tree);
     }
 
     private void reportBinState(final JsonElement tree) {
@@ -413,15 +407,16 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
         final JsonElement status = JSONUtils.find("cleanMissionStatus", tree);
         if (status != null) {
             final ThingUID thingUID = thing.getUID();
+            final ChannelGroupUID missionGroupUID = new ChannelGroupUID(thingUID, MISSION_GROUP_ID);
 
             final String cycle = JSONUtils.getAsString("cycle", status);
-            updateState(new ChannelUID(thingUID, MISSION_GROUP_ID, CHANNEL_MISSION_CYCLE), cycle);
+            updateState(new ChannelUID(missionGroupUID, CHANNEL_MISSION_CYCLE), cycle);
 
             final BigDecimal error = JSONUtils.getAsDecimal("error", status);
-            updateState(new ChannelUID(thingUID, MISSION_GROUP_ID, CHANNEL_MISSION_ERROR), String.valueOf(error));
+            updateState(new ChannelUID(missionGroupUID, CHANNEL_MISSION_ERROR), String.valueOf(error));
 
             final String phase = JSONUtils.getAsString("phase", status);
-            updateState(new ChannelUID(thingUID, MISSION_GROUP_ID, CHANNEL_MISSION_PHASE), phase);
+            updateState(new ChannelUID(missionGroupUID, CHANNEL_MISSION_PHASE), phase);
 
             final BigDecimal missions = JSONUtils.getAsDecimal("nMssn", status);
             updateState(new ChannelUID(thingUID, STATE_GROUP_ID, CHANNEL_STATE_MISSIONS), missions);
@@ -432,22 +427,16 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
         final JsonElement signal = JSONUtils.find("signal", tree);
         if (signal != null) {
             final ThingUID thingUID = thing.getUID();
+            final ChannelGroupUID networkGroupUID = new ChannelGroupUID(thingUID, NETWORK_GROUP_ID);
 
             final BigDecimal rssi = JSONUtils.getAsDecimal("rssi", signal);
-            updateState(new ChannelUID(thingUID, NETWORK_GROUP_ID, CHANNEL_NETWORK_RSSI), rssi);
+            updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_RSSI), rssi);
 
             final BigDecimal snr = JSONUtils.getAsDecimal("snr", signal);
-            updateState(new ChannelUID(thingUID, NETWORK_GROUP_ID, CHANNEL_NETWORK_SNR), snr);
+            updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_SNR), snr);
 
             final BigDecimal noise = JSONUtils.getAsDecimal("noise", signal);
-            updateState(new ChannelUID(thingUID, NETWORK_GROUP_ID, CHANNEL_NETWORK_NOISE), noise);
-        }
-
-        final String family = config.get().getFamily();
-        final String mac = JSONUtils.getAsString(family.equals(ROOMBA_980) ? "mac" : "wlan0HwAddr", tree);
-        if (mac != null) {
-            final ThingUID thingUID = thing.getUID();
-            updateState(new ChannelUID(thingUID, NETWORK_GROUP_ID, CHANNEL_NETWORK_MAC), mac.toUpperCase());
+            updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_NOISE), noise);
         }
     }
 
@@ -455,16 +444,18 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
         final JsonElement position = JSONUtils.find("pose", tree);
         if (position != null) {
             final ThingUID thingUID = thing.getUID();
-            updateState(new ChannelUID(thingUID, POSITION_GROUP_ID, CHANNEL_JSON), position.toString());
+            final ChannelGroupUID positionGroupUID = new ChannelGroupUID(thingUID, POSITION_GROUP_ID);
+
+            updateState(new ChannelUID(positionGroupUID, CHANNEL_JSON), position.toString());
 
             final BigDecimal xPos = JSONUtils.getAsDecimal("x", position);
-            updateState(new ChannelUID(thingUID, POSITION_GROUP_ID, CHANNEL_POSITION_X), xPos);
+            updateState(new ChannelUID(positionGroupUID, CHANNEL_POSITION_X), xPos);
 
             final BigDecimal yPos = JSONUtils.getAsDecimal("y", position);
-            updateState(new ChannelUID(thingUID, POSITION_GROUP_ID, CHANNEL_POSITION_Y), yPos);
+            updateState(new ChannelUID(positionGroupUID, CHANNEL_POSITION_Y), yPos);
 
             final BigDecimal theta = JSONUtils.getAsDecimal("theta", position);
-            updateState(new ChannelUID(thingUID, POSITION_GROUP_ID, CHANNEL_POSITION_THETA), theta);
+            updateState(new ChannelUID(positionGroupUID, CHANNEL_POSITION_THETA), theta);
         }
     }
 
