@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.openhab.binding.irobot.internal.IRobotChannelContentProvider;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ChannelUID;
@@ -47,7 +48,9 @@ class RoombaHandlerTest {
     private static final String IP_ADDRESS = "<iRobotIP>";
     private static final String PASSWORD = "<PasswordForIRobot>";
 
+    private IRobotChannelContentProvider channelContentProvider;
     private RoombaCommonHandler handler;
+
     private @Mock Thing myThing;
     private ThingHandlerCallback callback;
 
@@ -67,7 +70,8 @@ class RoombaHandlerTest {
 
         callback = Mockito.mock(ThingHandlerCallback.class);
 
-        handler = new RoombaCommonHandler(myThing);
+        channelContentProvider = new IRobotChannelContentProvider();
+        handler = new RoombaCommonHandler(myThing, channelContentProvider);
         handler.setCallback(callback);
     }
 

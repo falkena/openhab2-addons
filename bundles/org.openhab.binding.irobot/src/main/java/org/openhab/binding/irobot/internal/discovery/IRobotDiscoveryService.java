@@ -137,14 +137,15 @@ public class IRobotDiscoveryService extends AbstractDiscoveryService {
 
     private void discover(DatagramPacket incomingPacket) {
         String host = incomingPacket.getAddress().toString().substring(1);
-        String reply = new String(incomingPacket.getData(), StandardCharsets.UTF_8);
 
-        logger.trace("Received IDENT from {}: {}", host, reply);
+        if (logger.isTraceEnabled()) {
+            String reply = new String(incomingPacket.getData(), StandardCharsets.UTF_8);
+            logger.trace("Received IDENT from {}: {}", host, reply);
+        }
 
-        IdentProtocol.IdentData ident;
-
+        IdentProtocol.IdentData ident = null;
         try {
-            ident = IdentProtocol.decodeResponse(reply);
+            ident = IdentProtocol.decodeResponse(incomingPacket);
         } catch (JsonParseException exception) {
             logger.warn("Malformed IDENT reply from {}!", host);
             return;

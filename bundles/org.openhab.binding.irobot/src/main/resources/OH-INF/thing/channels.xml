@@ -182,6 +182,7 @@
 			<channel id="command" typeId="command"/>
 			<channel id="audio" typeId="audio"/>
 			<channel id="always_finish" typeId="always_finish"/>
+			<channel id="language" typeId="language"/>
 			<channel id="clean_passes" typeId="clean_passes"/>
 			<channel id="upload_map" typeId="upload_map"/>
 		</channels>
@@ -241,12 +242,22 @@
 	<channel-type id="clean_passes" advanced="true">
 		<item-type>String</item-type>
 		<label>Cleaning passes</label>
-		<description>Number of cleaning passes to make</description>
+		<description>Number of cleaning passes</description>
 		<state>
 			<options>
 				<option value="auto">Automatic</option>
 				<option value="1">One pass</option>
 				<option value="2">Two passes</option>
+			</options>
+		</state>
+	</channel-type>
+	<channel-type id="language" advanced="true">
+		<item-type>String</item-type>
+		<label>Language</label>
+		<description>The language the robot speaks</description>
+		<state>
+			<options>
+				<option value="UNKNOWN">Unknown</option>
 			</options>
 		</state>
 	</channel-type>
@@ -369,19 +380,6 @@
 				<option value="null">Unknown</option>
 			</options>
 		</state>
-	</channel-type>
-
-	<channel-type id="lastCommand" advanced="true">
-		<item-type>String</item-type>
-		<label>Last Command</label>
-		<description>The last command which has been received by the iRobot</description>
-		<state readOnly="true">
-		</state>
-	</channel-type>
-	<channel-type id="map_upload" advanced="true">
-		<item-type>Switch</item-type>
-		<label>Map upload</label>
-		<description>Enable uploading Clean Map(tm) to cloud for reporting</description>
 	</channel-type>
 
 </thing:thing-descriptions>

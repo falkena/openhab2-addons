@@ -100,6 +100,7 @@ public class IRobotBindingConstants {
     public static final String PASSES_2 = "2";
 
     public static final String CHANNEL_CONTROL_AUDIO = "audio";
+    public static final String CHANNEL_CONTROL_LANGUAGE = "language";
     public static final String CHANNEL_CONTROL_MAP_UPLOAD = "upload_map";
 
     public static final String CHANNEL_CONTROL_COMMAND = "command";

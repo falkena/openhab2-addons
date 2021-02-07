@@ -21,6 +21,7 @@ import java.util.Iterator;
 import javax.imageio.ImageIO;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.irobot.internal.IRobotChannelContentProvider;
 import org.openhab.binding.irobot.internal.utils.IRobotMap;
 import org.openhab.binding.irobot.internal.utils.JSONUtils;
 import org.openhab.binding.irobot.internal.utils.Requests;
@@ -53,8 +54,8 @@ public class RoombaI7Handler extends RoombaCommonHandler {
 
     private IRobotMap lastCleanMap = new IRobotMap();
 
-    public RoombaI7Handler(Thing thing) {
-        super(thing);
+    public RoombaI7Handler(Thing thing, IRobotChannelContentProvider channelContentProvider) {
+        super(thing, channelContentProvider);
     }
 
     @Override

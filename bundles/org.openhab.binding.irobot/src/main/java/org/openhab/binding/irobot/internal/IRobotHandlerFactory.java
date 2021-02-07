@@ -28,7 +28,9 @@ import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.BaseThingHandlerFactory;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerFactory;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * The {@link IRobotHandlerFactory} is responsible for creating things and thing
@@ -43,6 +45,13 @@ public class IRobotHandlerFactory extends BaseThingHandlerFactory {
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections.singleton(THING_TYPE_ROOMBA);
 
+    private IRobotChannelContentProvider channelContentProvider;
+
+    @Activate
+    public IRobotHandlerFactory(@Reference IRobotChannelContentProvider channelContentProvider) {
+        this.channelContentProvider = channelContentProvider;
+    }
+
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
         return SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID);
@@ -56,9 +65,9 @@ public class IRobotHandlerFactory extends BaseThingHandlerFactory {
             final Configuration config = thing.getConfiguration();
             final String family = config.as(IRobotConfiguration.class).getFamily();
             if (family.equals(ROOMBA_980)) {
-                return new Roomba980Handler(thing);
+                return new Roomba980Handler(thing, channelContentProvider);
             } else if (family.equals(ROOMBA_I7)) {
-                return new RoombaI7Handler(thing);
+                return new RoombaI7Handler(thing, channelContentProvider);
             }
         }
 

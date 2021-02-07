@@ -17,6 +17,7 @@ import java.time.ZonedDateTime;
 import javax.imageio.ImageIO;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.irobot.internal.IRobotChannelContentProvider;
 import org.openhab.binding.irobot.internal.utils.IRobotMap;
 import org.openhab.binding.irobot.internal.utils.JSONUtils;
 import org.openhab.binding.irobot.internal.utils.Requests;
@@ -52,8 +53,8 @@ public class Roomba980Handler extends RoombaCommonHandler {
 
     private IRobotMap lastCleanMap = new IRobotMap();
 
-    public Roomba980Handler(Thing thing) {
-        super(thing);
+    public Roomba980Handler(Thing thing, IRobotChannelContentProvider channelContentProvider) {
+        super(thing, channelContentProvider);
     }
 
     @Override

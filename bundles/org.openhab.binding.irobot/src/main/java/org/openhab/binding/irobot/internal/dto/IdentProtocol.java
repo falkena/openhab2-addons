@@ -60,10 +60,6 @@ public class IdentProtocol {
     }
 
     public static IdentData decodeResponse(DatagramPacket packet) throws JsonParseException {
-        return decodeResponse(new String(packet.getData(), StandardCharsets.UTF_8));
-    }
-
-    public static IdentData decodeResponse(String reply) throws JsonParseException {
         /*
          * packet is a JSON of the following contents (addresses are undisclosed):
          * @formatter:off

@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.irobot.internal.IRobotChannelContentProvider;
 import org.openhab.binding.irobot.internal.RawMQTT;
 import org.openhab.binding.irobot.internal.config.IRobotConfiguration;
 import org.openhab.binding.irobot.internal.dto.IdentProtocol;
@@ -69,11 +70,13 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
     private @Nullable Future<?> reconnectReq;
     private @Nullable MqttBrokerConnection connection;
 
+    private IRobotChannelContentProvider channelContentProvider;
     private AtomicReference<IRobotConfiguration> config = new AtomicReference<>();
     private ConcurrentHashMap<ChannelUID, State> lastState = new ConcurrentHashMap<>();
 
-    public RoombaCommonHandler(Thing thing) {
+    public RoombaCommonHandler(Thing thing, IRobotChannelContentProvider channelContentProvider) {
         super(thing);
+        this.channelContentProvider = channelContentProvider;
     }
 
     @Override
@@ -113,11 +116,14 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
                 sendRequest(new Requests.DeltaRequest(request));
             }
         } else if (command instanceof StringType) {
+            final JsonObject request = new JsonObject();
             final String channelId = channelUID.getIdWithoutGroup();
             if (CHANNEL_CONTROL_CLEAN_PASSES.equals(channelId)) {
-                final JsonObject request = new JsonObject();
                 request.addProperty("noAutoPasses", !command.equals(PASSES_AUTO));
                 request.addProperty("twoPasses", command.equals(PASSES_2));
+                sendRequest(new Requests.DeltaRequest(request));
+            } else if (CHANNEL_CONTROL_LANGUAGE.equals(channelId)) {
+                request.addProperty("language", command.toString());
                 sendRequest(new Requests.DeltaRequest(request));
             }
         }
@@ -349,6 +355,7 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
 
         reportBinState(tree);
         reportCleanPasses(tree);
+        reportLanguage(tree);
         reportMissionState(tree);
         reportNetworkState(tree);
         reportPositionState(tree);
@@ -395,6 +402,27 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
         }
 
         updateState(new ChannelUID(thingUID, CONTROL_GROUP_ID, CHANNEL_CONTROL_CLEAN_PASSES), state);
+    }
+
+    private void reportLanguage(final JsonElement tree) {
+        final ThingUID thingUID = thing.getUID();
+        final ChannelUID channelUID = new ChannelUID(thingUID, CONTROL_GROUP_ID, CHANNEL_CONTROL_LANGUAGE);
+
+        final JsonElement languages = JSONUtils.find("langs", tree);
+        if (languages != null) {
+            if (!channelContentProvider.isChannelPopulated(channelUID)) {
+                channelContentProvider.setLanguages(channelUID, languages);
+            }
+            final State state = getCacheEntry(channelUID);
+            updateState(channelUID, state != null ? state : new StringType(UNKNOWN));
+        }
+
+        final String language = JSONUtils.getAsString("language", tree);
+        if (channelContentProvider.isChannelPopulated(channelUID)) {
+            updateState(channelUID, language);
+        } else if (language != null) {
+            setCacheEntry(channelUID, new StringType(language));
+        }
     }
 
     private void reportMissionState(final JsonElement tree) {
