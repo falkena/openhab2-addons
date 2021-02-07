@@ -232,10 +232,26 @@ public class RoombaI7Handler extends RoombaCommonHandler {
             }
         }
 
+        final ChannelGroupUID networkGroupUID = new ChannelGroupUID(thingUID, NETWORK_GROUP_ID);
         final String mac = JSONUtils.getAsString("wlan0HwAddr", tree);
         if (mac != null) {
-            updateState(new ChannelUID(thingUID, NETWORK_GROUP_ID, CHANNEL_NETWORK_MAC), mac.toUpperCase());
+            updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_MAC), mac.toUpperCase());
         }
+
+        final String address = JSONUtils.getAsString("addr", tree);
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_ADDRESS), address);
+
+        final String mask = JSONUtils.getAsString("mask", tree);
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_MASK), mask);
+
+        final String gateway = JSONUtils.getAsString("gw", tree);
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_GATEWAY), gateway);
+
+        final String dns1 = JSONUtils.getAsString("dns1", tree);
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_DNS1), dns1);
+
+        final String dns2 = JSONUtils.getAsString("dns2", tree);
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_DNS2), dns2);
 
         final JsonElement lastCommand = JSONUtils.find("lastCommand", tree);
         if (lastCommand != null) {

@@ -41,11 +41,20 @@ public class IRobotBindingConstants {
     public static final String CHANNEL_JSON = "json";
 
     /**
-     * Singal group ID and channels within
+     * Network group ID and channels within
      */
     public static final String NETWORK_GROUP_ID = "network";
+    public static final String CHANNEL_NETWORK_ADDRESS = "address";
+    public static final String CHANNEL_NETWORK_BSSID = "bssid";
+    public static final String CHANNEL_NETWORK_DHCP = "dhcp";
+    public static final String CHANNEL_NETWORK_DNS1 = "primary_dns";
+    public static final String CHANNEL_NETWORK_DNS2 = "secondary_dns";
+    public static final String CHANNEL_NETWORK_GATEWAY = "gateway";
     public static final String CHANNEL_NETWORK_MAC = "mac";
+    public static final String CHANNEL_NETWORK_MASK = "mask";
     public static final String CHANNEL_NETWORK_NOISE = "noise";
+    public static final String CHANNEL_NETWORK_SECURITY = "security";
+    public static final String CHANNEL_NETWORK_SSID = "ssid";
     public static final String CHANNEL_NETWORK_RSSI = "rssi";
     public static final String CHANNEL_NETWORK_SNR = "snr";
 

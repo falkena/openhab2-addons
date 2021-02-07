@@ -10,60 +10,110 @@
 		<state readOnly="true"></state>
 	</channel-type>
 
+	<channel-type id="number" advanced="true">
+		<item-type>Number</item-type>
+		<label>General text</label>
+		<state readOnly="true"></state>
+	</channel-type>
+
 	<channel-group-type id="network">
-		<label>WiFi Signal</label>
-		<description>WiFi signal information</description>
+		<label>Network</label>
+		<description>Robot network settings</description>
 		<channels>
-			<channel id="mac" typeId="mac"/>
-			<channel id="rssi" typeId="rssi"/>
-			<channel id="snr" typeId="snr"/>
-			<channel id="noise" typeId="noise"/>
+			<channel id="address" typeId="text">
+				<label>IP address</label>
+				<description>IP address</description>
+			</channel>
+			<channel id="dhcp" typeId="dhcp"/>
+			<channel id="mac" typeId="text">
+				<label>MAC address</label>
+				<description>MAC address</description>
+			</channel>
+			<channel id="mask" typeId="text">
+				<label>IP mask</label>
+				<description>IP mask</description>
+			</channel>
+			<channel id="gateway" typeId="text">
+				<label>Gateway</label>
+				<description>Gateway</description>
+			</channel>
+			<channel id="primary_dns" typeId="text">
+				<label>Primary DNS server</label>
+				<description>Primary DNS server IP address</description>
+			</channel>
+			<channel id="secondary_dns" typeId="text">
+				<label>Secondary DNS server</label>
+				<description>Secondary DNS server IP address</description>
+			</channel>
+			<channel id="ssid" typeId="text">
+				<label>Service set identifier</label>
+				<description>WLAN network name</description>
+			</channel>
+			<channel id="bssid" typeId="text">
+				<label>Basic service set identifier</label>
+				<description>Basic service set identifier</description>
+			</channel>
+			<channel id="security" typeId="security"/>
+			<channel id="rssi" typeId="number">
+				<label>RSSI</label>
+				<description>Wi-Fi signal strength</description>
+			</channel>
+			<channel id="snr" typeId="number">
+				<label>SNR</label>
+				<description>Wi-Fi signal to noise ratio</description>
+			</channel>
+			<channel id="noise" typeId="number">
+				<label>Noise</label>
+				<description>Wi-Fi signal noise</description>
+			</channel>
 		</channels>
 	</channel-group-type>
-	<channel-type id="mac" advanced="true">
+	<channel-type id="dhcp" advanced="true">
+		<item-type>Switch</item-type>
+		<label>DHCP</label>
+		<description>IP address is provided by DHCP server</description>
+	</channel-type>
+	<channel-type id="security" advanced="true">
 		<item-type>String</item-type>
-		<label>MAC address</label>
-		<description>Robot MAC address</description>
-		<state readOnly="true"></state>
-	</channel-type>
-	<channel-type id="rssi" advanced="true">
-		<item-type>Number</item-type>
-		<label>RSSI</label>
-		<description>Wi-Fi signal strength</description>
-		<state readOnly="true"></state>
-	</channel-type>
-	<channel-type id="snr" advanced="true">
-		<item-type>Number</item-type>
-		<label>SNR</label>
-		<description>Wi-Fi signal to noise ratio</description>
-		<state readOnly="true"></state>
-	</channel-type>
-	<channel-type id="noise" advanced="true">
-		<item-type>Number</item-type>
-		<label>Noise</label>
-		<description>Wi-Fi signal noise</description>
-		<state readOnly="true"></state>
+		<label>Security</label>
+		<description>Security protocol</description>
+		<state readOnly="true">
+			<options>
+				<option value="0">Open</option>
+				<option value="1">WEP open</option>
+				<option value="2">WEP shared</option>
+				<option value="3">WPA</option>
+				<option value="4">WPA2</option>
+				<option value="5">WPA + WPA2</option>
+				<option value="6">EAP-TLS</option>
+				<option value="7">Wildcard SSID</option>
+				<option value="UNKNOWN">Unknown</option>
+			</options>
+		</state>
 	</channel-type>
 
 	<channel-group-type id="position">
 		<label>Position</label>
 		<description>Current position information</description>
 		<channels>
-			<channel id="x" typeId="position"/>
-			<channel id="y" typeId="position"/>
-			<channel id="theta" typeId="position"/>
+			<channel id="x" typeId="number">
+				<label>Position in X</label>
+				<description>Current robot position</description>
+			</channel>
+			<channel id="y" typeId="number">
+				<label>Position in Y</label>
+				<description>Current robot position</description>
+			</channel>
+			<channel id="theta" typeId="number">
+				<label>Orientation</label>
+				<description>Current robot orientation</description>
+			</channel>
 			<channel id="json" typeId="text">
 				<label>JSON message</label>
 				<description>JSON message replied by Roomba</description>
 			</channel>
 		</channels>
 	</channel-group-type>
-	<channel-type id="position" advanced="true">
-		<item-type>Number</item-type>
-		<label>Position</label>
-		<description>Current robot position</description>
-		<state readOnly="true"></state>
-	</channel-type>
 
 	<channel-group-type id="schedule">
 		<label>Schedule</label>

@@ -452,11 +452,11 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
     }
 
     private void reportNetworkState(final JsonElement tree) {
+        final ThingUID thingUID = thing.getUID();
+        final ChannelGroupUID networkGroupUID = new ChannelGroupUID(thingUID, NETWORK_GROUP_ID);
+
         final JsonElement signal = JSONUtils.find("signal", tree);
         if (signal != null) {
-            final ThingUID thingUID = thing.getUID();
-            final ChannelGroupUID networkGroupUID = new ChannelGroupUID(thingUID, NETWORK_GROUP_ID);
-
             final BigDecimal rssi = JSONUtils.getAsDecimal("rssi", signal);
             updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_RSSI), rssi);
 
@@ -465,6 +465,28 @@ public class RoombaCommonHandler extends BaseThingHandler implements MqttConnect
 
             final BigDecimal noise = JSONUtils.getAsDecimal("noise", signal);
             updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_NOISE), noise);
+        }
+
+        final String bssid = JSONUtils.getAsString("bssid", tree);
+        if (bssid != null) {
+            updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_BSSID), bssid.toUpperCase());
+        }
+
+        final Boolean dhcp = JSONUtils.getAsBoolean("dhcp", tree);
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_DHCP), dhcp);
+
+        final String security = JSONUtils.getAsString("sec", tree);
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_SECURITY), security);
+
+        final String ssid = JSONUtils.getAsString("ssid", tree);
+        if (ssid != null) {
+            String buffer = new String();
+            for (int i = 0; i < ssid.length() / 2; i++) {
+                int hi = Character.digit(ssid.charAt(2 * i + 0), 16);
+                int lo = Character.digit(ssid.charAt(2 * i + 1), 16);
+                buffer = buffer + Character.toString(16 * hi + lo);
+            }
+            updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_SSID), buffer);
         }
     }
 

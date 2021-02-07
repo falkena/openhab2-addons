@@ -17,6 +17,7 @@ import java.time.ZonedDateTime;
 import javax.imageio.ImageIO;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.irobot.internal.IRobotChannelContentProvider;
 import org.openhab.binding.irobot.internal.utils.IRobotMap;
 import org.openhab.binding.irobot.internal.utils.JSONUtils;
@@ -254,10 +255,26 @@ public class Roomba980Handler extends RoombaCommonHandler {
         final Boolean edgeClean = (openOnly != null) ? !openOnly : null;
         updateState(new ChannelUID(thingUID, CONTROL_GROUP_ID, CHANNEL_CONTROL_EDGE_CLEAN), edgeClean);
 
+        final ChannelGroupUID networkGroupUID = new ChannelGroupUID(thingUID, NETWORK_GROUP_ID);
         final String mac = JSONUtils.getAsString("mac", tree);
         if (mac != null) {
-            updateState(new ChannelUID(thingUID, NETWORK_GROUP_ID, CHANNEL_NETWORK_MAC), mac.toUpperCase());
+            updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_MAC), mac.toUpperCase());
         }
+
+        final String address = convertNumber2IP(JSONUtils.getAsDecimal("addr", tree));
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_ADDRESS), address);
+
+        final String mask = convertNumber2IP(JSONUtils.getAsDecimal("mask", tree));
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_MASK), mask);
+
+        final String gateway = convertNumber2IP(JSONUtils.getAsDecimal("gw", tree));
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_GATEWAY), gateway);
+
+        final String dns1 = convertNumber2IP(JSONUtils.getAsDecimal("dns1", tree));
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_DNS1), dns1);
+
+        final String dns2 = convertNumber2IP(JSONUtils.getAsDecimal("dns2", tree));
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_DNS2), dns2);
 
         final JsonElement lastCommand = JSONUtils.find("lastCommand", tree);
         if (lastCommand != null) {
@@ -313,4 +330,13 @@ public class Roomba980Handler extends RoombaCommonHandler {
 
         updateState(new ChannelUID(thingUID, CONTROL_GROUP_ID, CHANNEL_CONTROL_POWER_BOOST), state);
     }
+
+    private String convertNumber2IP(@Nullable BigDecimal number) {
+        String result = (number != null) ? new String() : "0.0.0.0.";
+        while ((number != null) && (number.longValue() > 0)) {
+            result = number.longValue() % 256 + "." + result;
+            number = BigDecimal.valueOf(number.longValue() / 256);
+        }
+        return result.substring(0, result.length() - 1);
+    };
 }
