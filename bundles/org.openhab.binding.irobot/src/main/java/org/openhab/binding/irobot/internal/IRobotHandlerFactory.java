@@ -20,6 +20,7 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.irobot.internal.config.IRobotConfiguration;
+import org.openhab.binding.irobot.internal.handler.BraavaM6Handler;
 import org.openhab.binding.irobot.internal.handler.Roomba980Handler;
 import org.openhab.binding.irobot.internal.handler.RoombaI7Handler;
 import org.openhab.core.config.core.Configuration;
@@ -68,6 +69,8 @@ public class IRobotHandlerFactory extends BaseThingHandlerFactory {
                 return new Roomba980Handler(thing, channelContentProvider);
             } else if (family.equals(ROOMBA_I7)) {
                 return new RoombaI7Handler(thing, channelContentProvider);
+            } else if (family.equals(BRAAVA_M6)) {
+                return new BraavaM6Handler(thing, channelContentProvider);
             }
         }
 

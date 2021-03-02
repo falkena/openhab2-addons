@@ -13,7 +13,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -126,7 +125,7 @@ public class RoombaI7Handler extends RoombaCommonHandler {
                 if (COMMAND_CLEAN.equals(request)) {
                     request = (isPaused != null) && isPaused ? COMMAND_RESUME : COMMAND_START;
                 }
-                sendRequest(new Requests.CommandRequest(new JsonPrimitive(request)));
+                connection.send(new Requests.CommandRequest(new JsonPrimitive(request)));
             } else {
                 super.handleCommand(channelUID, command);
             }
@@ -136,9 +135,8 @@ public class RoombaI7Handler extends RoombaCommonHandler {
     }
 
     @Override
-    public void processMessage(String topic, byte[] payload) {
+    public void receive(final String topic, final String json) {
         final ThingUID thingUID = thing.getUID();
-        final String json = new String(payload, StandardCharsets.UTF_8);
         final JsonElement tree = jsonParser.parse(new StringReader(json));
 
         // Skip desired messages, since AWS-related stuff
@@ -281,6 +279,6 @@ public class RoombaI7Handler extends RoombaCommonHandler {
             }
         }
 
-        super.processMessage(topic, payload);
+        super.receive(topic, json);
     }
 }

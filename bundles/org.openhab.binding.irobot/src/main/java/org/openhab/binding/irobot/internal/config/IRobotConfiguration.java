@@ -38,7 +38,7 @@ public class IRobotConfiguration {
     }
 
     public String getPassword() {
-        return password;
+        return password.isBlank() ? UNKNOWN : password;
     }
 
     public void setPassword(final String password) {
@@ -54,7 +54,7 @@ public class IRobotConfiguration {
     }
 
     public String getBlid() {
-        return blid;
+        return blid.isBlank() ? UNKNOWN : blid;
     }
 
     public void setBlid(final String blid) {

@@ -11,7 +11,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 
 import javax.imageio.ImageIO;
@@ -111,11 +110,11 @@ public class Roomba980Handler extends RoombaCommonHandler {
                 schedule.add("h", hours);
                 schedule.add("m", minutes);
                 state.add("cleanSchedule", schedule);
-                sendRequest(new Requests.DeltaRequest(state));
+                connection.send(new Requests.DeltaRequest(state));
             } else if (CHANNEL_CONTROL_EDGE_CLEAN.equals(channelUID.getIdWithoutGroup())) {
                 // Binding operate with inverse of "openOnly"
                 state.addProperty("openOnly", command.equals(OnOffType.OFF));
-                sendRequest(new Requests.DeltaRequest(state));
+                connection.send(new Requests.DeltaRequest(state));
             } else {
                 super.handleCommand(channelUID, command);
             }
@@ -144,7 +143,7 @@ public class Roomba980Handler extends RoombaCommonHandler {
                 schedule.add("h", hours);
                 schedule.add("m", minutes);
                 state.add("cleanSchedule", schedule);
-                sendRequest(new Requests.DeltaRequest(state));
+                connection.send(new Requests.DeltaRequest(state));
             } else {
                 super.handleCommand(channelUID, command);
             }
@@ -154,7 +153,7 @@ public class Roomba980Handler extends RoombaCommonHandler {
                 final JsonObject request = new JsonObject();
                 request.addProperty("carpetBoost", command.equals(BOOST_AUTO));
                 request.addProperty("vacHigh", command.equals(BOOST_PERFORMANCE));
-                sendRequest(new Requests.DeltaRequest(request));
+                connection.send(new Requests.DeltaRequest(request));
             } else if (CHANNEL_CONTROL_COMMAND.equals(channelId)) {
                 Boolean isPaused = Boolean.FALSE;
                 final ChannelGroupUID groupUID = new ChannelGroupUID(channelUID.getThingUID(), INTERNAL_GROUP_ID);
@@ -168,7 +167,7 @@ public class Roomba980Handler extends RoombaCommonHandler {
                 if (COMMAND_CLEAN.equals(request)) {
                     request = (isPaused != null) && isPaused ? COMMAND_RESUME : COMMAND_START;
                 }
-                sendRequest(new Requests.CommandRequest(new JsonPrimitive(request)));
+                connection.send(new Requests.CommandRequest(new JsonPrimitive(request)));
             } else {
                 super.handleCommand(channelUID, command);
             }
@@ -178,9 +177,8 @@ public class Roomba980Handler extends RoombaCommonHandler {
     }
 
     @Override
-    public void processMessage(String topic, byte[] payload) {
+    public void receive(final String topic, final String json) {
         final ThingUID thingUID = thing.getUID();
-        final String json = new String(payload, StandardCharsets.UTF_8);
         final JsonElement tree = jsonParser.parse(new StringReader(json));
 
         // Skip desired messages, since AWS-related stuff
@@ -302,7 +300,7 @@ public class Roomba980Handler extends RoombaCommonHandler {
         updateProperty("bootloaderVer", JSONUtils.getAsString("bootloaderVer", tree));
         updateProperty("umiVer", JSONUtils.getAsString("umiVer", tree));
 
-        super.processMessage(topic, payload);
+        super.receive(topic, json);
     }
 
     private void reportPowerBoost(final JsonElement tree) {
@@ -331,12 +329,16 @@ public class Roomba980Handler extends RoombaCommonHandler {
         updateState(new ChannelUID(thingUID, CONTROL_GROUP_ID, CHANNEL_CONTROL_POWER_BOOST), state);
     }
 
-    private String convertNumber2IP(@Nullable BigDecimal number) {
-        String result = (number != null) ? new String() : "0.0.0.0.";
-        while ((number != null) && (number.longValue() > 0)) {
-            result = number.longValue() % 256 + "." + result;
-            number = BigDecimal.valueOf(number.longValue() / 256);
+    private @Nullable String convertNumber2IP(@Nullable BigDecimal number) {
+        if (number != null) {
+            String result = (number.longValue() > 0) ? "" : "0.0.0.0.";
+            while (number.longValue() > 0) {
+                result = number.longValue() % 256 + "." + result;
+                number = BigDecimal.valueOf(number.longValue() / 256);
+            }
+            return result.substring(0, result.length() - 1);
+        } else {
+            return null;
         }
-        return result.substring(0, result.length() - 1);
     };
 }

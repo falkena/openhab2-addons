@@ -12,7 +12,10 @@
  */
 package org.openhab.binding.irobot.internal;
 
+import javax.net.ssl.TrustManager;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.io.net.http.TrustAllTrustManager;
 import org.openhab.core.thing.ThingTypeUID;
 
 /**
@@ -36,6 +39,7 @@ public class IRobotBindingConstants {
     // Family definitions
     public static final String ROOMBA_980 = "Roomba980";
     public static final String ROOMBA_I7 = "RoombaI7";
+    public static final String BRAAVA_M6 = "BraavaM6";
 
     // Common channel IDs
     public static final String CHANNEL_JSON = "json";
@@ -137,4 +141,11 @@ public class IRobotBindingConstants {
      */
     public static final String INTERNAL_GROUP_ID = "internal";
     public static final String CHANNEL_INTERNAL_LAST_COMMAND = "command";
+
+    public static final int MQTT_PORT = 8883;
+    public static final int UDP_PORT = 5678;
+    public static final TrustManager[] TRUST_MANAGERS = { TrustAllTrustManager.getInstance() };
+
+    public static final String ROBOT_BLID = "blid";
+    public static final String ROBOT_PASSWORD = "password";
 }

@@ -18,6 +18,7 @@
 			<channel-group id="mission" typeId="mission"/>
 		</channel-groups>
 
+		<representation-property>mac</representation-property>
 		<config-description-ref uri="thing-type:irobot:thing"/>
 	</thing-type>
 </thing:thing-descriptions>

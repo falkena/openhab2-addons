@@ -12,25 +12,22 @@
  */
 package org.openhab.binding.irobot.internal.discovery;
 
-import static org.openhab.binding.irobot.internal.IRobotBindingConstants.THING_TYPE_ROOMBA;
-import static org.openhab.binding.irobot.internal.IRobotBindingConstants.UNKNOWN;
+import static org.openhab.binding.irobot.internal.IRobotBindingConstants.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.irobot.internal.dto.IdentProtocol;
-import org.openhab.binding.irobot.internal.dto.IdentProtocol.IdentData;
+import org.openhab.binding.irobot.internal.utils.JSONUtils;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
 import org.openhab.core.config.discovery.DiscoveryService;
@@ -40,7 +37,8 @@ import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonParseException;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 /**
  * Discovery service for iRobots
@@ -90,23 +88,77 @@ public class IRobotDiscoveryService extends AbstractDiscoveryService {
 
     private Runnable createScanner() {
         return () -> {
+            Set<String> robots = new HashSet<>();
             long timestampOfLastScan = getTimestampOfLastScan();
             for (InetAddress broadcastAddress : getBroadcastAddresses()) {
                 logger.debug("Starting broadcast for {}", broadcastAddress.toString());
 
-                try (DatagramSocket socket = IdentProtocol.sendRequest(broadcastAddress)) {
-                    DatagramPacket incomingPacket;
+                final byte[] bRequest = "irobotmcs".getBytes(StandardCharsets.UTF_8);
+                DatagramPacket request = new DatagramPacket(bRequest, bRequest.length, broadcastAddress, UDP_PORT);
+                try (DatagramSocket socket = new DatagramSocket()) {
+                    socket.setSoTimeout(1000); // One second
+                    socket.setReuseAddress(true);
+                    socket.setBroadcast(true);
+                    socket.send(request);
 
-                    while ((incomingPacket = receivePacket(socket)) != null) {
-                        discover(incomingPacket);
+                    byte @Nullable [] reply = null;
+                    while ((reply = receive(socket)) != null) {
+                        robots.add(new String(reply, StandardCharsets.UTF_8));
                     }
                 } catch (IOException exception) {
-                    logger.warn("Error sending broadcast: {}", exception.toString());
+                    logger.debug("Error sending broadcast: {}", exception.toString());
+                }
+            }
+
+            final JsonParser jsonParser = new JsonParser();
+            for (final String json : robots) {
+                final JsonElement tree = jsonParser.parse(json);
+
+                // Only firmware version 2 and above are supported via MQTT, therefore check it
+                final BigDecimal version = JSONUtils.getAsDecimal("ver", tree);
+                final String protocol = JSONUtils.getAsString("proto", tree);
+                if ((version.intValue() > 1) && "mqtt".equalsIgnoreCase(protocol)) {
+                    String address = JSONUtils.getAsString("ip", tree);
+                    String mac = JSONUtils.getAsString("mac", tree);
+                    String sku = JSONUtils.getAsString("sku", tree);
+                    if ((address != null) && (sku != null) && (mac != null)) {
+                        ThingUID thingUID = new ThingUID(THING_TYPE_ROOMBA, mac.replace(":", ""));
+                        DiscoveryResultBuilder builder = DiscoveryResultBuilder.create(thingUID);
+                        builder = builder.withProperty("mac", mac).withRepresentationProperty("mac");
+
+                        sku = sku.toUpperCase();
+                        String family = UNKNOWN;
+                        if (sku.startsWith("R980")) {
+                            family = ROOMBA_980;
+                        } else if (sku.startsWith("I7")) {
+                            family = ROOMBA_I7;
+                        } else if (sku.startsWith("M6")) {
+                            family = BRAAVA_M6;
+                        }
+                        builder = builder.withProperty("family", family);
+                        builder = builder.withProperty("address", address);
+
+                        String name = JSONUtils.getAsString("robotname", tree);
+                        builder = builder.withLabel("iRobot " + (name != null ? name : UNKNOWN));
+                        thingDiscovered(builder.build());
+                    }
                 }
             }
 
             removeOlderResults(timestampOfLastScan);
         };
+    }
+
+    private byte @Nullable [] receive(DatagramSocket socket) {
+        try {
+            final byte[] bReply = new byte[1024];
+            DatagramPacket reply = new DatagramPacket(bReply, bReply.length);
+            socket.receive(reply);
+            return Arrays.copyOfRange(reply.getData(), reply.getOffset(), reply.getLength());
+        } catch (IOException exception) {
+            // This is not really an error, eventually we get a timeout due to a loop in the caller
+            return null;
+        }
     }
 
     private List<InetAddress> getBroadcastAddresses() {
@@ -123,49 +175,5 @@ public class IRobotDiscoveryService extends AbstractDiscoveryService {
         }
 
         return addresses;
-    }
-
-    private @Nullable DatagramPacket receivePacket(DatagramSocket socket) {
-        try {
-            return IdentProtocol.receiveResponse(socket);
-        } catch (IOException exception) {
-            // This is not really an error, eventually we get a timeout
-            // due to a loop in the caller
-            return null;
-        }
-    }
-
-    private void discover(DatagramPacket incomingPacket) {
-        String host = incomingPacket.getAddress().toString().substring(1);
-
-        if (logger.isTraceEnabled()) {
-            String reply = new String(incomingPacket.getData(), StandardCharsets.UTF_8);
-            logger.trace("Received IDENT from {}: {}", host, reply);
-        }
-
-        IdentProtocol.IdentData ident = null;
-        try {
-            ident = IdentProtocol.decodeResponse(incomingPacket);
-        } catch (JsonParseException exception) {
-            logger.warn("Malformed IDENT reply from {}!", host);
-            return;
-        }
-
-        // This check comes from Roomba980-Python
-        if (ident.version < IdentData.MIN_SUPPORTED_VERSION) {
-            logger.warn("Found unsupported iRobot \"{}\" version {} at {}", ident.name, ident.version, ident.address);
-            return;
-        }
-
-        if (!UNKNOWN.equals(ident.product)) {
-            ThingUID thingUID = new ThingUID(THING_TYPE_ROOMBA, ident.address.replace('.', '_'));
-
-            DiscoveryResultBuilder builder = DiscoveryResultBuilder.create(thingUID);
-            builder = builder.withProperty("address", ident.address).withRepresentationProperty("address");
-            builder = builder.withProperty("family", ident.product).withRepresentationProperty("family");
-            builder = builder.withProperty("blid", ident.blid).withRepresentationProperty("blid");
-            builder = builder.withLabel("iRobot " + ident.name);
-            thingDiscovered(builder.build());
-        }
     }
 }

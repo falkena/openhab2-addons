@@ -11,20 +11,25 @@
 			<description>Network address of the robot</description>
 			<required>true</required>
 		</parameter>
-		<parameter name="password" type="text">
-			<context>password</context>
-			<label>Password</label>
-			<description>Password of the robot</description>
-			<required>true</required>
-		</parameter>
 		<parameter name="family" type="text">
 			<label>IRobot Family</label>
 			<description>IRobot device family</description>
 			<options>
 				<option value="Roomba980">Roomba 980</option>
 				<option value="RoombaI7">Roomba I7</option>
+				<option value="BraavaM6">Braava M6</option>
 			</options>
 			<required>true</required>
+		</parameter>
+		<parameter name="blid" type="text">
+			<context>service</context>
+			<label>Robot ID</label>
+			<description>ID of the robot</description>
+		</parameter>
+		<parameter name="password" type="text">
+			<context>password</context>
+			<label>Password</label>
+			<description>Password of the robot</description>
 		</parameter>
 	</config-description>
 </config-description:config-descriptions>
