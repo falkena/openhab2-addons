@@ -50,13 +50,18 @@ public class LoginRequester {
         DatagramPacket request = new DatagramPacket(bRequest, bRequest.length, InetAddress.getByName(ip), UDP_PORT);
         socket.send(request);
 
-        final byte[] bReply = new byte[1024];
-        DatagramPacket reply = new DatagramPacket(bReply, bReply.length);
-        socket.receive(reply);
+        byte[] reply = new byte[1024];
+        try {
+            DatagramPacket packet = new DatagramPacket(reply, reply.length);
+            socket.receive(packet);
+            reply = Arrays.copyOfRange(packet.getData(), packet.getOffset(), packet.getLength());
+        } catch (IOException exception) {
+        } finally {
+            socket.close();
+        }
 
         final JsonParser jsonParser = new JsonParser();
-        final JsonElement tree = jsonParser
-                .parse(new String(reply.getData(), reply.getOffset(), reply.getLength(), StandardCharsets.UTF_8));
+        final JsonElement tree = jsonParser.parse(new String(reply, 0, reply.length, StandardCharsets.UTF_8));
 
         String blid = JSONUtils.getAsString("robotid", tree);
         final String hostname = JSONUtils.getAsString("hostname", tree);

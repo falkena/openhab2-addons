@@ -195,7 +195,6 @@
 				<label>Battery type</label>
 				<description>Battery type reported by Roomba</description>
 			</channel>
-			<channel id="missions" typeId="missions"/>
 			<channel id="json" typeId="text">
 				<label>JSON message</label>
 				<description>JSON message replied by Roomba</description>
@@ -213,12 +212,6 @@
 				<option value="removed">Removed</option>
 			</options>
 		</state>
-	</channel-type>
-	<channel-type id="missions">
-		<item-type>Number</item-type>
-		<label>Missions</label>
-		<description>Mission count</description>
-		<state readOnly="true"/>
 	</channel-type>
 
 	<channel-group-type id="control">
@@ -317,10 +310,14 @@
 		<label>Mission</label>
 		<description>Robot cleaning control</description>
 		<channels>
-			<channel id="cycle" typeId="cycle"/>
+			<channel id="number" typeId="number">
+				<label>Current</label>
+				<description>Current mission number</description>
+			</channel>
 			<channel id="map" typeId="map"/>
-			<channel id="phase" typeId="phase"/>
 			<channel id="error" typeId="error"/>
+			<channel id="cycle" typeId="cycle"/>
+			<channel id="phase" typeId="phase"/>
 		</channels>
 	</channel-group-type>
 	<channel-type id="cycle">

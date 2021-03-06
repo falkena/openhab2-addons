@@ -117,7 +117,7 @@ public class IRobotDiscoveryService extends AbstractDiscoveryService {
                 // Only firmware version 2 and above are supported via MQTT, therefore check it
                 final BigDecimal version = JSONUtils.getAsDecimal("ver", tree);
                 final String protocol = JSONUtils.getAsString("proto", tree);
-                if ((version.intValue() > 1) && "mqtt".equalsIgnoreCase(protocol)) {
+                if ((version != null) && (version.intValue() > 1) && "mqtt".equalsIgnoreCase(protocol)) {
                     String address = JSONUtils.getAsString("ip", tree);
                     String mac = JSONUtils.getAsString("mac", tree);
                     String sku = JSONUtils.getAsString("sku", tree);
@@ -126,16 +126,20 @@ public class IRobotDiscoveryService extends AbstractDiscoveryService {
                         DiscoveryResultBuilder builder = DiscoveryResultBuilder.create(thingUID);
                         builder = builder.withProperty("mac", mac).withRepresentationProperty("mac");
 
+                        Models model = null;
                         sku = sku.toUpperCase();
-                        String family = UNKNOWN;
-                        if (sku.startsWith("R980")) {
-                            family = ROOMBA_980;
-                        } else if (sku.startsWith("I7")) {
-                            family = ROOMBA_I7;
-                        } else if (sku.startsWith("M6")) {
-                            family = BRAAVA_M6;
+                        if (sku.startsWith("M")) {
+                            model = Models.BRAAVA_M_SERIES;
+                        } else if (sku.startsWith("E")) {
+                            model = Models.ROOMBA_E_SERIES;
+                        } else if (sku.startsWith("I")) {
+                            model = Models.ROOMBA_I_SERIES;
+                        } else if (sku.startsWith("R")) {
+                            model = Models.ROOMBA_9_SERIES;
+                        } else if (sku.startsWith("S")) {
+                            model = Models.ROOMBA_S_SERIES;
                         }
-                        builder = builder.withProperty("family", family);
+                        builder = builder.withProperty("family", model != null ? model.toString() : UNKNOWN);
                         builder = builder.withProperty("address", address);
 
                         String name = JSONUtils.getAsString("robotname", tree);

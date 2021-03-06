@@ -20,9 +20,11 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.irobot.internal.config.IRobotConfiguration;
-import org.openhab.binding.irobot.internal.handler.BraavaM6Handler;
-import org.openhab.binding.irobot.internal.handler.Roomba980Handler;
-import org.openhab.binding.irobot.internal.handler.RoombaI7Handler;
+import org.openhab.binding.irobot.internal.handler.BraavaMModelsHandler;
+import org.openhab.binding.irobot.internal.handler.Roomba9ModelsHandler;
+import org.openhab.binding.irobot.internal.handler.RoombaEModelsHandler;
+import org.openhab.binding.irobot.internal.handler.RoombaIModelsHandler;
+import org.openhab.binding.irobot.internal.handler.RoombaSModelsHandler;
 import org.openhab.core.config.core.Configuration;
 import org.openhab.core.i18n.LocaleProvider;
 import org.openhab.core.thing.Thing;
@@ -33,6 +35,8 @@ import org.openhab.core.thing.binding.ThingHandlerFactory;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+
+import nu.pattern.OpenCV;
 
 /**
  * The {@link IRobotHandlerFactory} is responsible for creating things and thing
@@ -49,6 +53,10 @@ public class IRobotHandlerFactory extends BaseThingHandlerFactory {
 
     private IRobotChannelContentProvider channelContentProvider;
     private LocaleProvider localeProvider;
+
+    static {
+        OpenCV.loadShared();
+    }
 
     @Activate
     public IRobotHandlerFactory(@Reference IRobotChannelContentProvider channelContentProvider,
@@ -68,13 +76,17 @@ public class IRobotHandlerFactory extends BaseThingHandlerFactory {
 
         if (thingTypeUID.equals(THING_TYPE_ROOMBA)) {
             final Configuration config = thing.getConfiguration();
-            final String family = config.as(IRobotConfiguration.class).getFamily();
-            if (family.equals(ROOMBA_980)) {
-                return new Roomba980Handler(thing, channelContentProvider, localeProvider);
-            } else if (family.equals(ROOMBA_I7)) {
-                return new RoombaI7Handler(thing, channelContentProvider, localeProvider);
-            } else if (family.equals(BRAAVA_M6)) {
-                return new BraavaM6Handler(thing, channelContentProvider, localeProvider);
+            final Models family = config.as(IRobotConfiguration.class).getFamily();
+            if (family == Models.BRAAVA_M_SERIES) {
+                return new BraavaMModelsHandler(thing, channelContentProvider, localeProvider);
+            } else if (family == Models.ROOMBA_9_SERIES) {
+                return new Roomba9ModelsHandler(thing, channelContentProvider, localeProvider);
+            } else if (family == Models.ROOMBA_E_SERIES) {
+                return new RoombaEModelsHandler(thing, channelContentProvider, localeProvider);
+            } else if (family == Models.ROOMBA_I_SERIES) {
+                return new RoombaIModelsHandler(thing, channelContentProvider, localeProvider);
+            } else if (family == Models.ROOMBA_S_SERIES) {
+                return new RoombaSModelsHandler(thing, channelContentProvider, localeProvider);
             }
         }
 

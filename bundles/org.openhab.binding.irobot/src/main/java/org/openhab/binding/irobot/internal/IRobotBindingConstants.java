@@ -38,10 +38,34 @@ public class IRobotBindingConstants {
     // Something goes wrong...
     public static final String UNKNOWN = "UNKNOWN";
 
-    // Family definitions
-    public static final String ROOMBA_980 = "Roomba980";
-    public static final String ROOMBA_I7 = "RoombaI7";
-    public static final String BRAAVA_M6 = "BraavaM6";
+    // Model definitions
+    public enum Models {
+        BRAAVA_M_SERIES("Braava-M"),
+        ROOMBA_9_SERIES("Roomba-9"),
+        ROOMBA_E_SERIES("Roomba-E"),
+        ROOMBA_I_SERIES("Roomba-I"),
+        ROOMBA_S_SERIES("Roomba-S");
+
+        private String model;
+
+        Models(final String model) {
+            this.model = model;
+        }
+
+        @Override
+        public String toString() {
+            return model;
+        }
+
+        public static Models fromString(final String name) {
+            for (final Models model : Models.values()) {
+                if (model.model.equalsIgnoreCase(name.trim())) {
+                    return model;
+                }
+            }
+            throw new IllegalArgumentException("Can not find iRobot model " + name);
+        }
+    }
 
     // Common channel IDs
     public static final String CHANNEL_JSON = "json";
@@ -79,7 +103,6 @@ public class IRobotBindingConstants {
     public static final String CHANNEL_STATE_BIN = "bin";
     public static final String CHANNEL_STATE_CHARGE = "charge";
     public static final String CHANNEL_STATE_TYPE = "type";
-    public static final String CHANNEL_STATE_MISSIONS = "missions";
     public static final String STATE_BIN_OK = "ok";
     public static final String STATE_BIN_FULL = "full";
     public static final String STATE_BIN_REMOVED = "removed";
@@ -137,6 +160,7 @@ public class IRobotBindingConstants {
     public static final String CHANNEL_MISSION_CYCLE = "cycle";
     public static final String CHANNEL_MISSION_ERROR = "error";
     public static final String CHANNEL_MISSION_MAP = "map";
+    public static final String CHANNEL_MISSION_NUMBER = "number";
     public static final String CHANNEL_MISSION_PHASE = "phase";
 
     /**

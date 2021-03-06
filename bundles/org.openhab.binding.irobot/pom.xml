@@ -13,4 +13,19 @@
   <artifactId>org.openhab.binding.irobot</artifactId>
 
   <name>openHAB Add-ons :: Bundles :: iRobot Binding</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.locationtech.jts</groupId>
+      <artifactId>jts-core</artifactId>
+      <version>1.18.1</version>
+      <type>bundle</type>
+    </dependency>
+    <dependency>
+      <groupId>org.openpnp</groupId>
+      <artifactId>opencv</artifactId>
+      <version>4.3.0-4</version>
+      <type>bundle</type>
+    </dependency>
+  </dependencies>
 </project>

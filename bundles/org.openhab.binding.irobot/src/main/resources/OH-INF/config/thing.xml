@@ -15,9 +15,11 @@
 			<label>IRobot Family</label>
 			<description>IRobot device family</description>
 			<options>
-				<option value="Roomba980">Roomba 980</option>
-				<option value="RoombaI7">Roomba I7</option>
-				<option value="BraavaM6">Braava M6</option>
+				<option value="Braava-M">Braava M Series</option>
+				<option value="Roomba-9">Roomba 9 Series</option>
+				<option value="Roomba-E">Roomba E Series</option>
+				<option value="Roomba-I">Roomba I Series</option>
+				<option value="Roomba-S">Roomba S Series</option>
 			</options>
 			<required>true</required>
 		</parameter>

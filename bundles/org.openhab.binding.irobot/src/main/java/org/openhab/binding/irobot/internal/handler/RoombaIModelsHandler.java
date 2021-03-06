@@ -7,9 +7,7 @@ package org.openhab.binding.irobot.internal.handler;
 
 import static org.openhab.binding.irobot.internal.IRobotBindingConstants.*;
 
-import java.awt.geom.Point2D;
 import java.io.ByteArrayOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -44,17 +42,17 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.*;
 
 /**
- * The {@link RoombaI7Handler} is responsible for handling commands, which are
+ * The {@link RoombaIModelsHandler} is responsible for handling commands, which are
  * sent to one of the channels.
  *
  * @author Alexander Falkenstern - Initial contribution
  */
 @NonNullByDefault
-public class RoombaI7Handler extends RoombaCommonHandler {
-    private final Logger logger = LoggerFactory.getLogger(RoombaI7Handler.class);
+public class RoombaIModelsHandler extends RoombaCommonHandler {
+    private final Logger logger = LoggerFactory.getLogger(RoombaIModelsHandler.class);
     private final JsonParser jsonParser = new JsonParser();
 
-    public RoombaI7Handler(Thing thing, IRobotChannelContentProvider channelContentProvider,
+    public RoombaIModelsHandler(Thing thing, IRobotChannelContentProvider channelContentProvider,
             LocaleProvider localeProvider) {
         super(thing, channelContentProvider, localeProvider);
     }
@@ -180,16 +178,6 @@ public class RoombaI7Handler extends RoombaCommonHandler {
                 lastCleanMap.clear();
                 updateState(new ChannelUID(thingUID, MISSION_GROUP_ID, CHANNEL_MISSION_MAP), UnDefType.UNDEF);
             } else if ("hmPostMsn".equals(currentPhase) || "hmUsrDock".equals(currentPhase)) {
-                try {
-                    FileWriter writer = new FileWriter("D:\\outputI7.txt");
-                    for (Point2D point : lastCleanMap.getPoints()) {
-                        writer.write(point.toString() + System.lineSeparator());
-                    }
-                    writer.close();
-                } catch (IOException exception) {
-                    logger.debug("Can not convert image: {}", exception.getMessage());
-                }
-
                 lastCleanMap.generate();
                 try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
                     ImageIO.write(lastCleanMap, "png", stream);

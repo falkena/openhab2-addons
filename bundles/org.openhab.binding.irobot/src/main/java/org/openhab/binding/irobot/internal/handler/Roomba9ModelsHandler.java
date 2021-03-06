@@ -41,17 +41,17 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.*;
 
 /**
- * The {@link Roomba980Handler} is responsible for handling commands, which are
+ * The {@link Roomba9ModelsHandler} is responsible for handling commands, which are
  * sent to one of the channels.
  *
  * @author Alexander Falkenstern - Initial contribution
  */
 @NonNullByDefault
-public class Roomba980Handler extends RoombaCommonHandler {
-    private final Logger logger = LoggerFactory.getLogger(Roomba980Handler.class);
+public class Roomba9ModelsHandler extends RoombaCommonHandler {
+    private final Logger logger = LoggerFactory.getLogger(Roomba9ModelsHandler.class);
     private final JsonParser jsonParser = new JsonParser();
 
-    public Roomba980Handler(Thing thing, IRobotChannelContentProvider channelContentProvider,
+    public Roomba9ModelsHandler(Thing thing, IRobotChannelContentProvider channelContentProvider,
             LocaleProvider localeProvider) {
         super(thing, channelContentProvider, localeProvider);
     }

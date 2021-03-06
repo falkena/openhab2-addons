@@ -104,18 +104,6 @@ public class RoombaCommonHandler extends BaseThingHandler {
             lastState.put(channel.getUID(), UnDefType.UNDEF);
         }
 
-        switch (config.get().getFamily()) {
-            case ROOMBA_980:
-            case ROOMBA_I7: {
-                break;
-            }
-            default: {
-                final String message = "Found not supported robot family " + config.get().getFamily();
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, message);
-                return;
-            }
-        }
-
         try {
             InetAddress.getByName(config.get().getAddress());
         } catch (UnknownHostException exception) {
@@ -415,7 +403,7 @@ public class RoombaCommonHandler extends BaseThingHandler {
             updateState(new ChannelUID(missionGroupUID, CHANNEL_MISSION_PHASE), phase);
 
             final BigDecimal missions = JSONUtils.getAsDecimal("nMssn", status);
-            updateState(new ChannelUID(thingUID, STATE_GROUP_ID, CHANNEL_STATE_MISSIONS), missions);
+            updateState(new ChannelUID(missionGroupUID, CHANNEL_MISSION_NUMBER), missions);
         }
     }
 
