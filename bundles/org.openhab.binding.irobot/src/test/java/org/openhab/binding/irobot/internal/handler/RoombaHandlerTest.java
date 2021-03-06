@@ -25,6 +25,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openhab.binding.irobot.internal.IRobotChannelContentProvider;
 import org.openhab.core.config.core.Configuration;
+import org.openhab.core.i18n.LocaleProvider;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -48,7 +49,6 @@ class RoombaHandlerTest {
     private static final String IP_ADDRESS = "<iRobotIP>";
     private static final String PASSWORD = "<PasswordForIRobot>";
 
-    private IRobotChannelContentProvider channelContentProvider;
     private RoombaCommonHandler handler;
 
     private @Mock Thing myThing;
@@ -70,8 +70,9 @@ class RoombaHandlerTest {
 
         callback = Mockito.mock(ThingHandlerCallback.class);
 
-        channelContentProvider = new IRobotChannelContentProvider();
-        handler = new RoombaCommonHandler(myThing, channelContentProvider);
+        IRobotChannelContentProvider channelContentProviderMock = Mockito.mock(IRobotChannelContentProvider.class);
+        LocaleProvider localeProviderMock = Mockito.mock(LocaleProvider.class);
+        handler = new RoombaCommonHandler(myThing, channelContentProviderMock, localeProviderMock);
         handler.setCallback(callback);
     }
 

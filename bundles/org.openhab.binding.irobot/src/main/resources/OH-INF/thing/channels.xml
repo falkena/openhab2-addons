@@ -62,10 +62,6 @@
 				<label>SNR</label>
 				<description>Wi-Fi signal to noise ratio</description>
 			</channel>
-			<channel id="noise" typeId="number">
-				<label>Noise</label>
-				<description>Wi-Fi signal noise</description>
-			</channel>
 		</channels>
 	</channel-group-type>
 	<channel-type id="dhcp" advanced="true">
@@ -272,6 +268,11 @@
 		<label>Edge clean</label>
 		<description>Seek out and clean along walls and furniture legs</description>
 	</channel-type>
+	<channel-type id="learn_map">
+		<item-type>Switch</item-type>
+		<label>Learn maps</label>
+		<description>Allow map learning</description>
+	</channel-type>
 	<channel-type id="upload_map">
 		<item-type>Switch</item-type>
 		<label>Upload map</label>
@@ -431,5 +432,20 @@
 			</options>
 		</state>
 	</channel-type>
+
+	<channel-group-type id="statistics">
+		<label>Lifetime statistics</label>
+		<description>Robot cleaning lifetime statistics</description>
+		<channels>
+			<channel id="duration" typeId="text">
+				<label>Cleaning duration</label>
+				<description>Robot lifetime cleaning duration</description>
+			</channel>
+			<channel id="mission_count" typeId="number">
+				<label>Mission count</label>
+				<description>Robot lifetime mission count</description>
+			</channel>
+		</channels>
+	</channel-group-type>
 
 </thing:thing-descriptions>

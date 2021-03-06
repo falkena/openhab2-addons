@@ -30,8 +30,10 @@ public class IRobotBindingConstants {
 
     public static final String BINDING_ID = "irobot";
 
-    // List of all Thing Type UIDs
+    // List of all type UIDs
     public static final ThingTypeUID THING_TYPE_ROOMBA = new ThingTypeUID(BINDING_ID, "roomba");
+    public static final String CHANNEL_TYPE_NUMBER = "number";
+    public static final String CHANNEL_TYPE_TEXT = "text";
 
     // Something goes wrong...
     public static final String UNKNOWN = "UNKNOWN";
@@ -114,6 +116,7 @@ public class IRobotBindingConstants {
 
     public static final String CHANNEL_CONTROL_AUDIO = "audio";
     public static final String CHANNEL_CONTROL_LANGUAGE = "language";
+    public static final String CHANNEL_CONTROL_MAP_LEARN = "learn_map";
     public static final String CHANNEL_CONTROL_MAP_UPLOAD = "upload_map";
 
     public static final String CHANNEL_CONTROL_COMMAND = "command";
@@ -135,6 +138,13 @@ public class IRobotBindingConstants {
     public static final String CHANNEL_MISSION_ERROR = "error";
     public static final String CHANNEL_MISSION_MAP = "map";
     public static final String CHANNEL_MISSION_PHASE = "phase";
+
+    /**
+     * Lifetime statistics group ID and channels within
+     */
+    public static final String STATISTICS_GROUP_ID = "statistics";
+    public static final String CHANNEL_STATISTICS_DURATION = "duration";
+    public static final String CHANNEL_STATISTICS_MISSION_COUNT = "mission_count";
 
     /**
      * Internal group IDs, there are no channels on GUI

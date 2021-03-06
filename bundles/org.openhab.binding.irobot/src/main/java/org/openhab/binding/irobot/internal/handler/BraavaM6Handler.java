@@ -8,6 +8,7 @@ package org.openhab.binding.irobot.internal.handler;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.irobot.internal.IRobotChannelContentProvider;
 import org.openhab.binding.irobot.internal.utils.IRobotMap;
+import org.openhab.core.i18n.LocaleProvider;
 import org.openhab.core.thing.Thing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,8 @@ public class BraavaM6Handler extends RoombaCommonHandler {
 
     private IRobotMap lastCleanMap = new IRobotMap();
 
-    public BraavaM6Handler(Thing thing, IRobotChannelContentProvider channelContentProvider) {
-        super(thing, channelContentProvider);
+    public BraavaM6Handler(Thing thing, IRobotChannelContentProvider channelContentProvider,
+            LocaleProvider localeProvider) {
+        super(thing, channelContentProvider, localeProvider);
     }
 }

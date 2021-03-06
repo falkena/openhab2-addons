@@ -10,12 +10,13 @@
 		<category>CleaningRobot</category>
 
 		<channel-groups>
-			<channel-group id="network" typeId="network"/>
-			<channel-group id="position" typeId="position"/>
-			<channel-group id="schedule" typeId="schedule"/>
 			<channel-group id="control" typeId="control"/>
+			<channel-group id="schedule" typeId="schedule"/>
 			<channel-group id="state" typeId="state"/>
 			<channel-group id="mission" typeId="mission"/>
+			<channel-group id="network" typeId="network"/>
+			<channel-group id="position" typeId="position"/>
+			<channel-group id="statistics" typeId="statistics"/>
 		</channel-groups>
 
 		<representation-property>mac</representation-property>

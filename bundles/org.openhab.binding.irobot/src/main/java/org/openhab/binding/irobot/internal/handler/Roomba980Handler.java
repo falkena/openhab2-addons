@@ -18,9 +18,9 @@ import javax.imageio.ImageIO;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.irobot.internal.IRobotChannelContentProvider;
-import org.openhab.binding.irobot.internal.utils.IRobotMap;
 import org.openhab.binding.irobot.internal.utils.JSONUtils;
 import org.openhab.binding.irobot.internal.utils.Requests;
+import org.openhab.core.i18n.LocaleProvider;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.RawType;
@@ -51,17 +51,16 @@ public class Roomba980Handler extends RoombaCommonHandler {
     private final Logger logger = LoggerFactory.getLogger(Roomba980Handler.class);
     private final JsonParser jsonParser = new JsonParser();
 
-    private IRobotMap lastCleanMap = new IRobotMap();
-
-    public Roomba980Handler(Thing thing, IRobotChannelContentProvider channelContentProvider) {
-        super(thing, channelContentProvider);
+    public Roomba980Handler(Thing thing, IRobotChannelContentProvider channelContentProvider,
+            LocaleProvider localeProvider) {
+        super(thing, channelContentProvider, localeProvider);
     }
 
     @Override
     public void initialize() {
+        ThingBuilder tBuilder = editThing();
         final ThingUID thingUID = thing.getUID();
 
-        ThingBuilder tBuilder = editThing();
         ChannelUID channelUID = new ChannelUID(thingUID, CONTROL_GROUP_ID, CHANNEL_CONTROL_EDGE_CLEAN);
         if (thing.getChannel(channelUID) == null) {
             ChannelBuilder cBuilder = ChannelBuilder.create(channelUID, "Switch");
@@ -79,6 +78,7 @@ public class Roomba980Handler extends RoombaCommonHandler {
             cBuilder.withDescription("Carpet boost mode");
             tBuilder.withChannel(cBuilder.build());
         }
+
         updateThing(tBuilder.build());
         super.initialize();
     }

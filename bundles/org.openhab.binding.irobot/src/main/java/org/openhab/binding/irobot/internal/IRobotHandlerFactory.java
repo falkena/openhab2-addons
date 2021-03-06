@@ -24,6 +24,7 @@ import org.openhab.binding.irobot.internal.handler.BraavaM6Handler;
 import org.openhab.binding.irobot.internal.handler.Roomba980Handler;
 import org.openhab.binding.irobot.internal.handler.RoombaI7Handler;
 import org.openhab.core.config.core.Configuration;
+import org.openhab.core.i18n.LocaleProvider;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.BaseThingHandlerFactory;
@@ -47,10 +48,13 @@ public class IRobotHandlerFactory extends BaseThingHandlerFactory {
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections.singleton(THING_TYPE_ROOMBA);
 
     private IRobotChannelContentProvider channelContentProvider;
+    private LocaleProvider localeProvider;
 
     @Activate
-    public IRobotHandlerFactory(@Reference IRobotChannelContentProvider channelContentProvider) {
+    public IRobotHandlerFactory(@Reference IRobotChannelContentProvider channelContentProvider,
+            @Reference LocaleProvider localeProvider) {
         this.channelContentProvider = channelContentProvider;
+        this.localeProvider = localeProvider;
     }
 
     @Override
@@ -66,11 +70,11 @@ public class IRobotHandlerFactory extends BaseThingHandlerFactory {
             final Configuration config = thing.getConfiguration();
             final String family = config.as(IRobotConfiguration.class).getFamily();
             if (family.equals(ROOMBA_980)) {
-                return new Roomba980Handler(thing, channelContentProvider);
+                return new Roomba980Handler(thing, channelContentProvider, localeProvider);
             } else if (family.equals(ROOMBA_I7)) {
-                return new RoombaI7Handler(thing, channelContentProvider);
+                return new RoombaI7Handler(thing, channelContentProvider, localeProvider);
             } else if (family.equals(BRAAVA_M6)) {
-                return new BraavaM6Handler(thing, channelContentProvider);
+                return new BraavaM6Handler(thing, channelContentProvider, localeProvider);
             }
         }
 

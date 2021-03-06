@@ -21,9 +21,9 @@ import javax.imageio.ImageIO;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.irobot.internal.IRobotChannelContentProvider;
-import org.openhab.binding.irobot.internal.utils.IRobotMap;
 import org.openhab.binding.irobot.internal.utils.JSONUtils;
 import org.openhab.binding.irobot.internal.utils.Requests;
+import org.openhab.core.i18n.LocaleProvider;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.RawType;
@@ -32,6 +32,9 @@ import org.openhab.core.thing.ChannelGroupUID;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingUID;
+import org.openhab.core.thing.binding.builder.ChannelBuilder;
+import org.openhab.core.thing.binding.builder.ThingBuilder;
+import org.openhab.core.thing.type.ChannelTypeUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
@@ -51,14 +54,35 @@ public class RoombaI7Handler extends RoombaCommonHandler {
     private final Logger logger = LoggerFactory.getLogger(RoombaI7Handler.class);
     private final JsonParser jsonParser = new JsonParser();
 
-    private IRobotMap lastCleanMap = new IRobotMap();
-
-    public RoombaI7Handler(Thing thing, IRobotChannelContentProvider channelContentProvider) {
-        super(thing, channelContentProvider);
+    public RoombaI7Handler(Thing thing, IRobotChannelContentProvider channelContentProvider,
+            LocaleProvider localeProvider) {
+        super(thing, channelContentProvider, localeProvider);
     }
 
     @Override
     public void initialize() {
+        ThingBuilder tBuilder = editThing();
+        final ThingUID thingUID = thing.getUID();
+
+        ChannelUID channelUID = new ChannelUID(thingUID, CONTROL_GROUP_ID, CHANNEL_CONTROL_MAP_LEARN);
+        if (thing.getChannel(channelUID) == null) {
+            ChannelBuilder cBuilder = ChannelBuilder.create(channelUID, "Switch");
+            cBuilder.withType(new ChannelTypeUID(BINDING_ID, CHANNEL_CONTROL_MAP_LEARN));
+            cBuilder.withLabel("Learn maps");
+            cBuilder.withDescription("Allow map learning");
+            tBuilder.withChannel(cBuilder.build());
+        }
+
+        channelUID = new ChannelUID(thingUID, NETWORK_GROUP_ID, CHANNEL_NETWORK_NOISE);
+        if (thing.getChannel(channelUID) == null) {
+            ChannelBuilder cBuilder = ChannelBuilder.create(channelUID, "Number");
+            cBuilder.withType(new ChannelTypeUID(BINDING_ID, CHANNEL_TYPE_NUMBER));
+            cBuilder.withLabel("Noise");
+            cBuilder.withDescription("Wi-Fi signal noise");
+            tBuilder.withChannel(cBuilder.build());
+        }
+
+        updateThing(tBuilder.build());
         super.initialize();
     }
 
@@ -91,6 +115,9 @@ public class RoombaI7Handler extends RoombaCommonHandler {
                  * state.add("cleanSchedule2", schedule);
                  * sendRequest(new Requests.DeltaRequest(state));
                  */
+            } else if (CHANNEL_CONTROL_MAP_LEARN.equals(channelUID.getIdWithoutGroup())) {
+                state.addProperty("pmapLearningAllowed", command.equals(OnOffType.ON));
+                connection.send(new Requests.DeltaRequest(state));
             } else {
                 super.handleCommand(channelUID, command);
             }
@@ -163,6 +190,7 @@ public class RoombaI7Handler extends RoombaCommonHandler {
                     logger.debug("Can not convert image: {}", exception.getMessage());
                 }
 
+                lastCleanMap.generate();
                 try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
                     ImageIO.write(lastCleanMap, "png", stream);
                     final RawType data = new RawType(stream.toByteArray(), "image/png");
@@ -230,11 +258,17 @@ public class RoombaI7Handler extends RoombaCommonHandler {
             }
         }
 
+        final Boolean allowLearning = JSONUtils.getAsBoolean("pmapLearningAllowed", tree);
+        updateState(new ChannelUID(thingUID, CONTROL_GROUP_ID, CHANNEL_CONTROL_MAP_LEARN), allowLearning);
+
         final ChannelGroupUID networkGroupUID = new ChannelGroupUID(thingUID, NETWORK_GROUP_ID);
         final String mac = JSONUtils.getAsString("wlan0HwAddr", tree);
         if (mac != null) {
             updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_MAC), mac.toUpperCase());
         }
+
+        final BigDecimal noise = JSONUtils.getAsDecimal("noise", tree);
+        updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_NOISE), noise);
 
         final String address = JSONUtils.getAsString("addr", tree);
         updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_ADDRESS), address);

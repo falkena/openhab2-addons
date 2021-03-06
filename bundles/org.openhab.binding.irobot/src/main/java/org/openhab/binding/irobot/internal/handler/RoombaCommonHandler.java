@@ -23,6 +23,8 @@ import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,10 +33,12 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.irobot.internal.IRobotChannelContentProvider;
 import org.openhab.binding.irobot.internal.config.IRobotConfiguration;
+import org.openhab.binding.irobot.internal.utils.IRobotMap;
 import org.openhab.binding.irobot.internal.utils.JSONUtils;
 import org.openhab.binding.irobot.internal.utils.LoginRequester;
 import org.openhab.binding.irobot.internal.utils.Requests;
 import org.openhab.core.config.core.Configuration;
+import org.openhab.core.i18n.LocaleProvider;
 import org.openhab.core.io.transport.mqtt.MqttConnectionState;
 import org.openhab.core.library.types.*;
 import org.openhab.core.thing.*;
@@ -61,11 +65,14 @@ public class RoombaCommonHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(RoombaCommonHandler.class);
 
     private IRobotChannelContentProvider channelContentProvider;
+    private LocaleProvider localeProvider;
+
     private AtomicReference<IRobotConfiguration> config = new AtomicReference<>();
     private ConcurrentHashMap<ChannelUID, State> lastState = new ConcurrentHashMap<>();
 
     private @Nullable Future<?> credentialRequester;
 
+    protected IRobotMap lastCleanMap = new IRobotMap();
     protected RoombaConnectionHandler connection = new RoombaConnectionHandler() {
         @Override
         public void receive(final String topic, final String json) {
@@ -83,9 +90,11 @@ public class RoombaCommonHandler extends BaseThingHandler {
         }
     };
 
-    public RoombaCommonHandler(Thing thing, IRobotChannelContentProvider channelContentProvider) {
+    public RoombaCommonHandler(Thing thing, IRobotChannelContentProvider channelContentProvider,
+            LocaleProvider localeProvider) {
         super(thing);
         this.channelContentProvider = channelContentProvider;
+        this.localeProvider = localeProvider;
     }
 
     @Override
@@ -317,6 +326,7 @@ public class RoombaCommonHandler extends BaseThingHandler {
         reportMissionState(tree);
         reportNetworkState(tree);
         reportPositionState(tree);
+        reportStatisticsState(tree);
     }
 
     private void reportBinState(final JsonElement tree) {
@@ -420,9 +430,6 @@ public class RoombaCommonHandler extends BaseThingHandler {
 
             final BigDecimal snr = JSONUtils.getAsDecimal("snr", signal);
             updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_SNR), snr);
-
-            final BigDecimal noise = JSONUtils.getAsDecimal("noise", signal);
-            updateState(new ChannelUID(networkGroupUID, CHANNEL_NETWORK_NOISE), noise);
         }
 
         final String bssid = JSONUtils.getAsString("bssid", tree);
@@ -464,6 +471,36 @@ public class RoombaCommonHandler extends BaseThingHandler {
 
             final BigDecimal theta = JSONUtils.getAsDecimal("theta", position);
             updateState(new ChannelUID(positionGroupUID, CHANNEL_POSITION_THETA), theta);
+        }
+    }
+
+    private void reportStatisticsState(final JsonElement tree) {
+        final JsonElement run = JSONUtils.find("bbrun", tree);
+        if (run != null) {
+            final ThingUID thingUID = thing.getUID();
+            final ChannelGroupUID statisticsGroupUID = new ChannelGroupUID(thingUID, STATISTICS_GROUP_ID);
+
+            final BigDecimal hrs = JSONUtils.getAsDecimal("hr", run);
+            final BigDecimal min = JSONUtils.getAsDecimal("min", run);
+            if ((hrs != null) && (min != null)) {
+                Locale locale = localeProvider.getLocale();
+                final String hString = ChronoField.HOUR_OF_DAY.getDisplayName(locale);
+                final String mString = ChronoField.MINUTE_OF_HOUR.getDisplayName(locale);
+                String duration = String.format("%d %s %d %s", hrs.intValue(), hString, min.intValue(), mString);
+                updateState(new ChannelUID(statisticsGroupUID, CHANNEL_STATISTICS_DURATION), duration);
+            }
+        }
+
+        // @formatter:off
+        // "bbmssn": { "aCycleM": 0, "nMssnF": 0, "nMssnC": 0, "nMssnOk": 0, "aMssnM": 0, "nMssn": 0 }
+        // @formatter:on
+        final JsonElement mission = JSONUtils.find("bbmssn", tree);
+        if (mission != null) {
+            final ThingUID thingUID = thing.getUID();
+            final ChannelGroupUID statisticsGroupUID = new ChannelGroupUID(thingUID, STATISTICS_GROUP_ID);
+
+            final BigDecimal mCount = JSONUtils.getAsDecimal("nMssn", mission);
+            updateState(new ChannelUID(statisticsGroupUID, CHANNEL_STATISTICS_MISSION_COUNT), mCount);
         }
     }
 }
